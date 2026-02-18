@@ -1,24 +1,45 @@
-import './style.css'
-import typescriptLogo from './typescript.svg'
-import viteLogo from '/vite.svg'
-import { setupCounter } from './counter.ts'
+import { Interpreter } from './core/interpreter';
+import type { Program } from './core/types';
 
-document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
-  <div>
-    <a href="https://vite.dev" target="_blank">
-      <img src="${viteLogo}" class="logo" alt="Vite logo" />
-    </a>
-    <a href="https://www.typescriptlang.org/" target="_blank">
-      <img src="${typescriptLogo}" class="logo vanilla" alt="TypeScript logo" />
-    </a>
-    <h1>Vite + TypeScript</h1>
-    <div class="card">
-      <button id="counter" type="button"></button>
-    </div>
-    <p class="read-the-docs">
-      Click on the Vite and TypeScript logos to learn more
-    </p>
-  </div>
-`
+const program1: Program = {
+  blocks: [
+    {type: "VarDeclaration", id: "1", variables: ["x", "y"]},
+    {type: "Assignment", id: "2", variable: "x", expression: {type: "Number", value: 10}},
+    {type: "Assignment",
+       id: "3",
+      variable: "y",
+      expression: {
+        type: "BinaryOp",
+        operator:"+",
+        left:{type:"Variable", name: "x"},
+        right: {type: "Number", value: 5
+        }
+      }
+    }
+  ] 
+}
 
-setupCounter(document.querySelector<HTMLButtonElement>('#counter')!)
+const program2: Program = {
+  blocks: [
+    {type:"VarDeclaration", id:"1",variables:["x","result"]},
+    {type: "Assignment", id: "2", variable:"x",expression:{type:"Number", value:15}},
+    {type: "If",
+       id: "3",
+        condition: {type: "Comparison", operator:">", left:{type:"Variable", name:"x"}, right:{type:"Number", value:10}},
+         body: [
+      {type:"Assignment", id: "4", variable:"result", expression:{type:"Number", value:1}},
+    ],
+    elseBody: [
+      {type:"Assignment", id: "5", variable:"result", expression:{type:"Number", value:0}},
+    ]
+  }],
+}
+
+const interp1 = new Interpreter();
+interp1.execute(program1);
+console.log("Тест 1:", interp1.getVariables());
+
+const interp2 = new Interpreter();
+interp2.execute(program2);
+console.log("Тест 2:", interp2.getVariables());
+

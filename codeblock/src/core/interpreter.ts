@@ -93,6 +93,10 @@ export class Interpreter {
                 }
         }
     }
+    
+    getVariables(): Map<string, number> {
+        return this.variables;
+    }
 
     execute (program: Program): void {
         for (const block of program.blocks) {
