@@ -1,5 +1,6 @@
 import { Interpreter } from './core/interpreter';
 import type { Program } from './core/types';
+import { render } from './ui/renderer'
 
 const program1: Program = {
   blocks: [
@@ -37,9 +38,11 @@ const program2: Program = {
 
 const interp1 = new Interpreter();
 interp1.execute(program1);
+render(program1);
 console.log("Тест 1:", interp1.getVariables());
 
 const interp2 = new Interpreter();
 interp2.execute(program2);
+render(program2);
 console.log("Тест 2:", interp2.getVariables());
 
