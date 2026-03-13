@@ -1,20 +1,23 @@
 body {
-    display: flex;    /* дочерние элементы (aside, main) встанут в ряд */
-    height: 100vh;    /* на всю высоту экрана */
+    display: flex;
+    height: 100vh;
+    font-family: 'Segoe UI', sans-serif;
+    background-color: #f0f2f5;
 }
 
 aside {
     width: 250px;
     display: flex;
-    flex-direction: column;  /* кнопки друг под другом */
-    gap: 8px;                /* отступ между ними */
-    padding: 16px;           /* отступ от краёв */
+    flex-direction: column;
+    gap: 8px;
+    padding: 16px;
     justify-content: space-between;
-
+    background-color: #ffffff;
+    box-shadow: 2px 0 8px rgba(0,0,0,0.1);
 }
 
 main {
-    flex: 1;          /* занять всё оставшееся место */
+    flex: 1;
     border-left: 2px solid #ccc;
     padding-left: 10px;
 }
@@ -47,24 +50,18 @@ main {
     width: 100%;
     padding: 10px;
     font-size: 16px;
-
     background-color: #4CAF50;
     color: white;
     border: none;
 }
 
+.exec-btn::before {
+    content: '▶ ';
+}
+
+
 .exec-btn:hover {
     background-color: #45a049;
-}
-
-body {
-    font-family: 'Segoe UI', sans-serif;
-    background-color: #f0f2f5;
-}
-
-aside {
-    background-color: #ffffff;
-    box-shadow: 2px 0 8px rgba(0,0,0,0.1);
 }
 
 button {
@@ -77,4 +74,51 @@ button {
 
 button:hover {
     background-color: #e8e8e8;
+}
+
+/* --- Responsive --- */
+@media (max-width: 1200px) {
+    aside {
+        width: 200px;
+        padding: 12px;
+    }
+}
+
+@media (max-width: 800px) {
+    body {
+        flex-direction: column;
+        height: auto;
+    }
+
+    aside {
+        width: 100%;
+        flex-direction: row;
+        flex-wrap: wrap;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    main {
+        border-left: none;
+        border-top: 2px solid #ccc;
+        padding-left: 0;
+    }
+
+    .exec-btn {
+        margin-top: 0;
+    }
+}
+
+@media (max-width: 450px) {
+    aside {
+        padding: 8px;
+        gap: 4px;
+    }
+
+    #workspace {
+        padding: 8px;
+    }
+
+    .block {
+        font-size: 14px;
+    }
 }
