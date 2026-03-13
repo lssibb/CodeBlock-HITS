@@ -1,5 +1,5 @@
 import type { Block, Program, Expression, Condition } from '../core/types';
-import { updateBlock } from '../app/state';
+import { updateBlock, addBlockToChild } from '../app/state';
 
 function parseExpression(expression:Expression): string{
     switch(expression.type){
@@ -217,15 +217,59 @@ export function createBlockElement(block:Block): HTMLElement {
             const header = document.createElement(`div`);
             const body = document.createElement(`div`);
 
-            header.textContent = `Пока ${parseCondition(block.condition)}, `
+            const span1 = document.createElement('span');
+            const span2 = document.createElement('span');
+            const span3 = document.createElement('span');
+
+            span1.textContent = 'Пока ';
+            span2.textContent = `${parseCondition(block.condition)}`;  
+            span3.textContent = ', ';
+
+            span2.className = 'editable';
+
+            header.appendChild(span1);
+            header.appendChild(span2);
+            header.appendChild(span3);
+
+            span2.addEventListener('click',() =>{
+                span2.innerHTML = '';
+                const input = document.createElement('input');
+                input.value = `${parseCondition(block.condition)}`;
+                span2.appendChild(input);
+                input.focus();
+
+                input.addEventListener('blur',()=>{
+                    
+                    updateBlock(block.id,{condition:textToСondition(input.value)})
+
+                })
+            })
+
             div.appendChild(header);
             
             for (const subBlock of block.body){
                 body.appendChild(createBlockElement(subBlock));
             }
+            
+            const addButton = document.createElement('button');
+            addButton.textContent = '+ Добавить блок';
+            addButton.addEventListener('click', () => {
+                const newBlock = { 
+                    type: 'Assignment', 
+                    id: '', 
+                    variable: '{укажите переменную}', 
+                    expression: {type:'Number', value:0}
+                } as Block;
+                addBlockToChild(block.id, newBlock, 'body');
+            });
+            body.appendChild(addButton);
+            
             div.appendChild(body);
             return div;
         }
+
+
+        
         
         default: {
             throw new Error(`Неизвестный тип блока`);

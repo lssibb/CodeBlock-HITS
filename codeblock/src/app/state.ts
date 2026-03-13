@@ -44,3 +44,23 @@ export function updateBlock(id: string, changes: Partial<Block>): void {
         render(state.program)
     }
 }
+
+export function findBlockById(blocks: Block[], id: string): Block | undefined {
+    for (const block of blocks) {
+        
+        if (block.id === id) {
+            return block;
+        }
+        if (block.type === 'If' || block.type === 'While') {
+            const result = findBlockById(block.body, id);
+            if (result) return result;
+        }
+        
+        if (block.type === 'If' && block.elseBody) {
+            const result = findBlockById(block.elseBody, id);
+            if (result) return result;
+        }
+    }
+    
+    return undefined;
+}
