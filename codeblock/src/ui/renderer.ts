@@ -170,6 +170,7 @@ export function createBlockElement(block:Block): HTMLElement {
             span3.addEventListener('click',() =>{
                 span3.innerHTML = '';
                 const input = document.createElement('input');
+                if (block.expression.type === 'Number') input.type = 'number';
                 input.value = `${parseExpression(block.expression)}`;
                 span3.appendChild(input);
                 input.focus();
