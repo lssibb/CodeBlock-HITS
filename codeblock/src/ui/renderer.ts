@@ -12,7 +12,11 @@ function parseExpression(expression:Expression): string{
         }
 
         case "BinaryOp":{
-            return `${parseExpression(expression.left)} ${expression.operator} ${parseExpression(expression.right)}`;
+            const left = parseExpression(expression.left);
+            const right = parseExpression(expression.right);
+            const wrapL = expression.left.type === 'BinaryOp' ? `(${left})` : left;
+            const wrapR = expression.right.type === 'BinaryOp' ? `(${right})` : right;
+            return `${wrapL} ${expression.operator} ${wrapR}`;
         }
     }
 }
@@ -27,24 +31,48 @@ function textToExpression(text:string): Expression{
 
     text = text.trim();
 
-    let op = operatorsLow.find(o => text.includes(o));
-    if(op==undefined) op = operatorsHigh.find(o => text.includes(o));
-    
-    
-
-    if (op !== undefined) {
-        const idx = text.indexOf(`${op}`);
-            return {type:'BinaryOp',operator:`${op}`,left:textToExpression(text.slice(0,idx)),right:textToExpression(text.slice(idx+1))} as Expression;
-    } 
-
-    else {
-        if(text !== '' && !isNaN(Number(text))){
-            return {type:"Number",value:Number(text)};
+    // снять внешние скобки: (x + 5) → x + 5, но (a)+(b) — не трогать
+    while (text[0] === '(' && text[text.length - 1] === ')') {
+        let depth = 0, wraps = true;
+        for (let i = 0; i < text.length - 1; i++) {
+            if (text[i] === '(') depth++;
+            else if (text[i] === ')') depth--;
+            if (depth === 0) { wraps = false; break; }
         }
-        else{
-            return {type:"Variable",name:text};
-        }
+        if (!wraps) break;
+        text = text.slice(1, -1).trim();
     }
+
+    // найти последний оператор на depth=0 (сначала +/-, потом */%)
+    let splitIdx = -1;
+    let splitOp = '';
+    for (const ops of [operatorsLow, operatorsHigh]) {
+        let depth = 0;
+        for (let i = 0; i < text.length; i++) {
+            if (text[i] === '(') depth++;
+            else if (text[i] === ')') depth--;
+            else if (depth === 0) {
+                for (const op of ops) {
+                    if (text.substring(i, i + op.length) === op) {
+                        splitIdx = i;
+                        splitOp = op;
+                    }
+                }
+            }
+        }
+        if (splitIdx !== -1) break;
+    }
+
+    if (splitIdx !== -1) {
+        return {type:'BinaryOp', operator:splitOp,
+            left:textToExpression(text.slice(0, splitIdx)),
+            right:textToExpression(text.slice(splitIdx + splitOp.length))} as Expression;
+    }
+
+    if (text !== '' && !isNaN(Number(text))) {
+        return {type:"Number", value:Number(text)};
+    }
+    return {type:"Variable", name:text};
 }
 
 function textToСondition(text:string): Condition{
@@ -55,13 +83,13 @@ function textToСondition(text:string): Condition{
 
     let op = operatorsDouble.find(o => text.includes(o));
     if(op==undefined) op = operators.find(o => text.includes(o));
-    
-    
+
+
 
     if (op !== undefined) {
         const idx = text.indexOf(`${op}`);
-            return {type:'Comparison',operator:`${op}`,left:textToExpression(text.slice(0,idx)),right:textToExpression(text.slice(idx+1))} as Condition;
-    } 
+            return {type:'Comparison',operator:`${op}`,left:textToExpression(text.slice(0,idx)),right:textToExpression(text.slice(idx+op.length))} as Condition;
+    }
 
     else throw new Error('Некорректное условие: оператор сравнения не найден');
 }
@@ -76,7 +104,7 @@ export function createBlockElement(block:Block): HTMLElement {
             const span2 = document.createElement('span');
 
             span1.textContent = `Объявить `;
-            span2.textContent = block.variables.length > 0 
+            span2.textContent = block.variables.length > 0
                 ? block.variables.join(', ')
                 : 'Введите названия...';
 
@@ -97,7 +125,7 @@ export function createBlockElement(block:Block): HTMLElement {
                     const newVariables=input.value.split(', ').filter(v => v.trim() !== '');
 
                     updateBlock(block.id,{variables:newVariables});
-                    
+
 
                 })
             })
@@ -130,15 +158,15 @@ export function createBlockElement(block:Block): HTMLElement {
                 input.focus();
 
                 input.addEventListener('blur',()=>{
-                    
+
                     const newVariable=input.value.trim();
 
                     updateBlock(block.id,{variable:newVariable});
-                    
+
 
                 })
             })
-            
+
             span3.addEventListener('click',() =>{
                 span3.innerHTML = '';
                 const input = document.createElement('input');
@@ -147,14 +175,14 @@ export function createBlockElement(block:Block): HTMLElement {
                 input.focus();
 
                 input.addEventListener('blur',()=>{
-                    
+
                     updateBlock(block.id,{expression:textToExpression(input.value)})
 
                 })
             })
             return div;
         }
-        
+
         case "If":{
             const div = document.createElement('div');
             div.className = 'block';
@@ -189,7 +217,7 @@ export function createBlockElement(block:Block): HTMLElement {
                     elseBody.appendChild(createBlockElement(subBlock));
                 }
                 div.appendChild(secondHeader);
-                div.appendChild(elseBody);                
+                div.appendChild(elseBody);
             }
 
             span2.addEventListener('click',() =>{
@@ -200,7 +228,7 @@ export function createBlockElement(block:Block): HTMLElement {
                 input.focus();
 
                 input.addEventListener('blur',()=>{
-                    
+
                     updateBlock(block.id,{condition:textToСondition(input.value)})
 
                 })
@@ -222,7 +250,7 @@ export function createBlockElement(block:Block): HTMLElement {
             const span3 = document.createElement('span');
 
             span1.textContent = 'Пока ';
-            span2.textContent = `${parseCondition(block.condition)}`;  
+            span2.textContent = `${parseCondition(block.condition)}`;
             span3.textContent = ', ';
 
             span2.className = 'editable';
@@ -239,38 +267,38 @@ export function createBlockElement(block:Block): HTMLElement {
                 input.focus();
 
                 input.addEventListener('blur',()=>{
-                    
+
                     updateBlock(block.id,{condition:textToСondition(input.value)})
 
                 })
             })
 
             div.appendChild(header);
-            
+
             for (const subBlock of block.body){
                 body.appendChild(createBlockElement(subBlock));
             }
-            
+
             const addButton = document.createElement('button');
             addButton.textContent = '+ Добавить блок';
             addButton.addEventListener('click', () => {
-                const newBlock = { 
-                    type: 'Assignment', 
-                    id: '', 
-                    variable: '{укажите переменную}', 
+                const newBlock = {
+                    type: 'Assignment',
+                    id: '',
+                    variable: '{укажите переменную}',
                     expression: {type:'Number', value:0}
                 } as Block;
                 addBlockToChild(block.id, newBlock, 'body');
             });
             body.appendChild(addButton);
-            
+
             div.appendChild(body);
             return div;
         }
 
 
-        
-        
+
+
         default: {
             throw new Error(`Неизвестный тип блока`);
         }
@@ -279,7 +307,7 @@ export function createBlockElement(block:Block): HTMLElement {
 
 export function render (program: Program): void{
     const container = document.getElementById('workspace')!
-    container.innerHTML = '' 
+    container.innerHTML = ''
 
     for(const block of program.blocks){
         container.appendChild(createBlockElement(block));
