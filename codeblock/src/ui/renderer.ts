@@ -100,6 +100,7 @@ export function createBlockElement(block:Block): HTMLElement {
         case "VarDeclaration":{
             const div = document.createElement('div');
             div.className = 'block';
+            div.dataset.id = block.id;
             const span1 = document.createElement('span');
             const span2 = document.createElement('span');
 
@@ -135,6 +136,7 @@ export function createBlockElement(block:Block): HTMLElement {
         case "Assignment":{
             const div = document.createElement('div');
             div.className = 'block';
+            div.dataset.id = block.id;
             const span1 = document.createElement('span');
             const span2 = document.createElement('span');
             const span3 = document.createElement('span');
@@ -187,6 +189,7 @@ export function createBlockElement(block:Block): HTMLElement {
         case "If":{
             const div = document.createElement('div');
             div.className = 'block';
+            div.dataset.id = block.id;
             const firstHeader = document.createElement(`div`);
             const ifBody = document.createElement(`div`);
             const secondHeader = document.createElement(`div`);
@@ -243,6 +246,7 @@ export function createBlockElement(block:Block): HTMLElement {
         case "While":{
             const div = document.createElement('div');
             div.className = 'block';
+            div.dataset.id = block.id;
             const header = document.createElement(`div`);
             const body = document.createElement(`div`);
 

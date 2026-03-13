@@ -63,7 +63,7 @@ export class Interpreter {
         
     
 
-    private executeBlock (block:Block): void{
+    executeBlock (block:Block): void{
         switch (block.type) {
             case "VarDeclaration":
                 for (const name of block.variables) {
