@@ -16,7 +16,7 @@ export function addBlock(block:Block): void{
 }
 
 export function addBlockToChild(parentId: string,block:Block, target: 'body' | 'elseBody'): void{
-    const parentBlock = state.program.blocks.find( b => b.id ==parentId) as IfBlock | WhileBlock;
+    const parentBlock = state.program.blocks.find( b => b.id ===parentId) as IfBlock | WhileBlock;
     if (parentBlock){
         block.id=crypto.randomUUID();
         if (target === 'body') {

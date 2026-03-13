@@ -82,7 +82,7 @@ function textToСondition(text:string): Condition{
     text = text.trim();
 
     let op = operatorsDouble.find(o => text.includes(o));
-    if(op==undefined) op = operators.find(o => text.includes(o));
+    if(op===undefined) op = operators.find(o => text.includes(o));
 
 
 
