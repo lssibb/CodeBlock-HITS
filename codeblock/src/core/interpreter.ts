@@ -2,14 +2,44 @@ import type { Block, Program, Expression, Condition, FunctionDeclarationBlock } 
 
 export class Interpreter {
 
-    private variables: Map<string, number>;
+    private scopes: Map<string, number>[];
     private arrays: Map<string, number[]>;
     private functions: Map<string, FunctionDeclarationBlock>;
 
     constructor() {
-        this.variables = new Map();
+        this.scopes = [new Map()];
         this.arrays = new Map();
         this.functions = new Map();
+    }
+
+    private getVariable(name: string): number {
+        for (let i = this.scopes.length - 1; i >= 0; i--) {
+            const val = this.scopes[i].get(name);
+            if (val !== undefined) return val;
+        }
+        throw new Error(`Переменная ${name} не объявлена`);
+    }
+
+    private setVariable(name: string, value: number): void {
+        for (let i = this.scopes.length - 1; i >= 0; i--) {
+            if (this.scopes[i].has(name)) {
+                this.scopes[i].set(name, value);
+                return;
+            }
+        }
+        this.scopes[this.scopes.length - 1].set(name, value);
+    }
+
+    private declareVariable(name: string, value: number): void {
+        this.scopes[this.scopes.length - 1].set(name, value);
+    }
+
+    private pushScope(): void {
+        this.scopes.push(new Map());
+    }
+
+    private popScope(): void {
+        if (this.scopes.length > 1) this.scopes.pop();
     }
 
     private evaluateCondition (cond: Condition): boolean{
@@ -43,11 +73,7 @@ export class Interpreter {
             case "Number":
                 return expr.value;
             case "Variable":
-                const val = this.variables.get(expr.name);
-                if (val === undefined){
-                    throw new Error(`Переменная ${expr.name} не объявлена`);
-                }
-                return val;
+                return this.getVariable(expr.name);
             case "ArrayAccess": {
                 const arr = this.arrays.get(expr.name);
                 if (!arr) throw new Error(`Массив ${expr.name} не объявлен`);
@@ -74,23 +100,21 @@ export class Interpreter {
                         return left % right;
                 }
                 throw new Error(`Неизвестный тип выражения`);
-        }       
+        }
     }
-        
-    
 
     executeBlock (block:Block): void{
         switch (block.type) {
             case "VarDeclaration": {
                 const unique = new Set(block.variables);
                 for (const name of unique) {
-                    this.variables.set(name,0);
+                    this.declareVariable(name, 0);
                 }
             }
                 break;
             case "Assignment":
                 const value = this.evaluateExpression(block.expression);
-                this.variables.set(block.variable,value);
+                this.setVariable(block.variable, value);
                 break;
             case "If":
                 if (this.evaluateCondition(block.condition)) {
@@ -110,7 +134,7 @@ export class Interpreter {
                     }
                 }
                 break;
-                case "BeginEnd":
+            case "BeginEnd":
                 for (const subBlock of block.body) {
                     this.executeBlock(subBlock);
                 }
@@ -119,7 +143,7 @@ export class Interpreter {
                 const from = this.evaluateExpression(block.from);
                 const to = this.evaluateExpression(block.to);
                 for (let i = from; i <= to; i++) {
-                    this.variables.set(block.variable, i);
+                    this.setVariable(block.variable, i);
                     for (const subBlock of block.body) {
                         this.executeBlock(subBlock);
                     }
@@ -149,28 +173,28 @@ export class Interpreter {
                 if (block.args.length !== func.params.length) {
                     throw new Error(`Функция ${block.name} ожидает ${func.params.length} аргументов, получено ${block.args.length}`);
                 }
-                const savedVars = new Map(this.variables);
+                this.pushScope();
                 for (let i = 0; i < func.params.length; i++) {
-                    this.variables.set(func.params[i], this.evaluateExpression(block.args[i]));
+                    this.declareVariable(func.params[i], this.evaluateExpression(block.args[i]));
                 }
                 for (const subBlock of func.body) {
                     this.executeBlock(subBlock);
                 }
-                const results = new Map(this.variables);
-                this.variables = savedVars;
-                for (const [key, val] of results) {
-                    if (savedVars.has(key)) {
-                        this.variables.set(key, val);
-                    }
-                }
+                this.popScope();
                 break;
             }
 
         }
     }
-    
+
     getVariables(): Map<string, number> {
-        return this.variables;
+        const all = new Map<string, number>();
+        for (const scope of this.scopes) {
+            for (const [k, v] of scope) {
+                all.set(k, v);
+            }
+        }
+        return all;
     }
 
     getArrays(): Map<string, number[]> {
@@ -182,4 +206,4 @@ export class Interpreter {
             this.executeBlock(block);
         }
     }
-}   
+}
