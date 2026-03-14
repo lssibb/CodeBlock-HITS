@@ -119,7 +119,7 @@ function textToExpression(text:string): Expression{
     return {type:"Variable", name:text};
 }
 
-function textToСondition(text:string): Condition{
+function textToCondition(text:string): Condition{
     text = text.trim();
 
     while (text.startsWith('(') && text.endsWith(')')) {
@@ -134,7 +134,7 @@ function textToСondition(text:string): Condition{
     }
 
     if (text.toUpperCase().startsWith('NOT ')) {
-        return { type: 'Not', operand: textToСondition(text.slice(4)) };
+        return { type: 'Not', operand: textToCondition(text.slice(4)) };
     }
 
     let depth = 0;
@@ -160,16 +160,16 @@ function textToСondition(text:string): Condition{
     if (lastOr !== -1) {
         return {
             type: 'LogicalOp', operator: 'OR',
-            left: textToСondition(text.slice(0, lastOr)),
-            right: textToСondition(text.slice(lastOr + 2))
+            left: textToCondition(text.slice(0, lastOr)),
+            right: textToCondition(text.slice(lastOr + 2))
         };
     }
 
     if (lastAnd !== -1) {
         return {
             type: 'LogicalOp', operator: 'AND',
-            left: textToСondition(text.slice(0, lastAnd)),
-            right: textToСondition(text.slice(lastAnd + 3))
+            left: textToCondition(text.slice(0, lastAnd)),
+            right: textToCondition(text.slice(lastAnd + 3))
         };
     }
 
@@ -363,7 +363,7 @@ export function createBlockElement(block:Block): HTMLElement {
                 input.focus();
 
                 input.addEventListener('blur',()=>{
-                    updateBlock(block.id,{condition:textToСondition(input.value)})
+                    updateBlock(block.id,{condition:textToCondition(input.value)})
                 })
             })
 
@@ -407,7 +407,7 @@ export function createBlockElement(block:Block): HTMLElement {
                 input.focus();
 
                 input.addEventListener('blur',()=>{
-                    updateBlock(block.id,{condition:textToСondition(input.value)})
+                    updateBlock(block.id,{condition:textToCondition(input.value)})
                 })
             })
 
