@@ -192,10 +192,74 @@ export function initPalette():void{
         render(state.program);
     });
 
+    const saveButton = document.createElement('button');
+    saveButton.className = 'exec-btn';
+    saveButton.textContent = 'Сохранить';
+    saveButton.style.backgroundColor = '#1976d2';
+    saveButton.addEventListener('click', () => {
+        localStorage.setItem('codeblock-program', JSON.stringify(state.program));
+        alert('Программа сохранена');
+    });
+
+    const loadButton = document.createElement('button');
+    loadButton.className = 'exec-btn';
+    loadButton.textContent = 'Загрузить';
+    loadButton.style.backgroundColor = '#1976d2';
+    loadButton.addEventListener('click', () => {
+        const data = localStorage.getItem('codeblock-program');
+        if (!data) { alert('Нет сохранённой программы'); return; }
+        state.program = JSON.parse(data);
+        render(state.program);
+    });
+
+    const exportButton = document.createElement('button');
+    exportButton.className = 'exec-btn';
+    exportButton.textContent = 'Экспорт в файл';
+    exportButton.style.backgroundColor = '#6d4c41';
+    exportButton.addEventListener('click', () => {
+        const json = JSON.stringify(state.program, null, 2);
+        const blob = new Blob([json], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'program.json';
+        a.click();
+        URL.revokeObjectURL(url);
+    });
+
+    const importButton = document.createElement('button');
+    importButton.className = 'exec-btn';
+    importButton.textContent = 'Импорт из файла';
+    importButton.style.backgroundColor = '#6d4c41';
+    importButton.addEventListener('click', () => {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.json';
+        input.addEventListener('change', () => {
+            const file = input.files?.[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = () => {
+                try {
+                    state.program = JSON.parse(reader.result as string);
+                    render(state.program);
+                } catch {
+                    alert('Ошибка чтения файла');
+                }
+            };
+            reader.readAsText(file);
+        });
+        input.click();
+    });
+
     palette.appendChild(demoButton);
     palette.appendChild(toggleButton);
     palette.appendChild(executeButton);
     palette.appendChild(stepButton);
     palette.appendChild(autoButton);
     palette.appendChild(stopButton);
+    palette.appendChild(saveButton);
+    palette.appendChild(loadButton);
+    palette.appendChild(exportButton);
+    palette.appendChild(importButton);
 }
