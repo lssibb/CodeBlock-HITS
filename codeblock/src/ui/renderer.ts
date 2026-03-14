@@ -23,6 +23,10 @@ function parseExpression(expression:Expression): string{
             return `${expression.name}[${parseExpression(expression.index)}]`;
         }
 
+        case "FieldAccess":{
+            return `${expression.object}.${expression.field}`;
+        }
+
         case "BinaryOp":{
             const left = parseExpression(expression.left);
             const right = parseExpression(expression.right);
@@ -105,6 +109,11 @@ function textToExpression(text:string): Expression{
         const name = text.slice(0, bracketIdx).trim();
         const indexExpr = text.slice(bracketIdx + 1, -1).trim();
         return {type:"ArrayAccess", name, index: textToExpression(indexExpr)};
+    }
+
+    if (text.includes('.') && !text.includes('[')) {
+        const dotIdx = text.indexOf('.');
+        return {type:"FieldAccess", object: text.slice(0, dotIdx).trim(), field: text.slice(dotIdx + 1).trim()};
     }
 
     return {type:"Variable", name:text};
@@ -814,6 +823,115 @@ export function createBlockElement(block:Block): HTMLElement {
                 input.addEventListener('blur', () => {
                     const newArgs = input.value.split(',').map(s => textToExpression(s.trim())).filter(Boolean);
                     updateBlock(block.id, { args: newArgs });
+                });
+            });
+
+            const deleteBtn = document.createElement('button');
+            deleteBtn.textContent = 'x';
+            deleteBtn.className = 'delete-btn';
+            deleteBtn.addEventListener('click', () => {
+                removeBlock(block.id);
+            });
+            div.appendChild(deleteBtn);
+            return div;
+        }
+
+        case "StructDeclaration": {
+            const div = document.createElement('div');
+            div.className = 'block';
+            div.dataset.type = 'struct';
+            div.dataset.blockId = block.id;
+
+            const span1 = document.createElement('span');
+            const spanName = document.createElement('span');
+            const span2 = document.createElement('span');
+            const spanFields = document.createElement('span');
+
+            span1.textContent = 'Структура ';
+            spanName.textContent = block.name;
+            spanName.className = 'editable';
+            span2.textContent = ' { ';
+            spanFields.textContent = block.fields.length > 0 ? block.fields.join(', ') : 'поля...';
+            spanFields.className = 'editable';
+
+            div.appendChild(span1);
+            div.appendChild(spanName);
+            div.appendChild(span2);
+            div.appendChild(spanFields);
+            div.appendChild(document.createTextNode(' }'));
+
+            spanName.addEventListener('click', () => {
+                spanName.innerHTML = '';
+                const input = document.createElement('input');
+                input.value = block.name;
+                spanName.appendChild(input);
+                input.focus();
+                input.addEventListener('blur', () => {
+                    updateBlock(block.id, { name: input.value.trim() });
+                });
+            });
+
+            spanFields.addEventListener('click', () => {
+                spanFields.innerHTML = '';
+                const input = document.createElement('input');
+                input.value = block.fields.join(', ');
+                spanFields.appendChild(input);
+                input.focus();
+                input.addEventListener('blur', () => {
+                    const newFields = input.value.split(',').map(s => s.trim()).filter(s => s !== '');
+                    updateBlock(block.id, { fields: newFields });
+                });
+            });
+
+            const deleteBtn = document.createElement('button');
+            deleteBtn.textContent = 'x';
+            deleteBtn.className = 'delete-btn';
+            deleteBtn.addEventListener('click', () => {
+                removeBlock(block.id);
+            });
+            div.appendChild(deleteBtn);
+            return div;
+        }
+
+        case "StructCreate": {
+            const div = document.createElement('div');
+            div.className = 'block';
+            div.dataset.type = 'struct';
+            div.dataset.blockId = block.id;
+
+            const spanVar = document.createElement('span');
+            const span1 = document.createElement('span');
+            const spanStruct = document.createElement('span');
+
+            spanVar.textContent = block.variable;
+            spanVar.className = 'editable';
+            span1.textContent = ' = новый ';
+            spanStruct.textContent = block.structName;
+            spanStruct.className = 'editable';
+
+            div.appendChild(spanVar);
+            div.appendChild(span1);
+            div.appendChild(spanStruct);
+
+            spanVar.addEventListener('click', () => {
+                spanVar.innerHTML = '';
+                const input = document.createElement('input');
+                input.value = block.variable;
+                spanVar.appendChild(input);
+                input.focus();
+                input.addEventListener('blur', () => {
+                    updateBlock(block.id, { variable: input.value.trim() });
+                });
+            });
+
+            spanStruct.addEventListener('click', () => {
+                spanStruct.innerHTML = '';
+                const input = document.createElement('input');
+                input.value = block.structName;
+                spanStruct.appendChild(input);
+                input.focus();
+                input.addEventListener('blur', () => {
+                    updateBlock(block.id, { structName: input.value.trim() });
                 });
             });
 

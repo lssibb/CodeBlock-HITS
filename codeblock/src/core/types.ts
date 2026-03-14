@@ -26,7 +26,8 @@ export interface WhileBlock {
     body: Block[];
 }
 
-export type Value = number | string | boolean;
+export type StructInstance = { _struct: string; fields: Map<string, Value> };
+export type Value = number | string | boolean | StructInstance;
 
 export type Expression =
 | { type: "Number"; value: number }
@@ -34,6 +35,7 @@ export type Expression =
 | { type: "Boolean"; value: boolean }
 | { type: "Variable"; name: string }
 | { type: "ArrayAccess"; name: string; index: Expression }
+| { type: "FieldAccess"; object: string; field: string }
 | { type: "BinaryOp";
     operator: "+"|"-"|"*"|"/"|"%";
     left: Expression;
@@ -103,6 +105,20 @@ export interface FunctionCallBlock {
     args: Expression[];
 }
 
-export type Block = VarDeclarationBlock | AssignmentBlock | IfBlock | WhileBlock | BeginEndBlock | ForBlock | ArrayDeclarationBlock | ArrayAssignmentBlock | FunctionDeclarationBlock | FunctionCallBlock;
+export interface StructDeclarationBlock {
+    type: "StructDeclaration";
+    id: string;
+    name: string;
+    fields: string[];
+}
+
+export interface StructCreateBlock {
+    type: "StructCreate";
+    id: string;
+    variable: string;
+    structName: string;
+}
+
+export type Block = VarDeclarationBlock | AssignmentBlock | IfBlock | WhileBlock | BeginEndBlock | ForBlock | ArrayDeclarationBlock | ArrayAssignmentBlock | FunctionDeclarationBlock | FunctionCallBlock | StructDeclarationBlock | StructCreateBlock;
 
 export interface Program {blocks: Block[]};

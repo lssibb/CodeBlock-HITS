@@ -1,15 +1,17 @@
-import type { Block, Program, Expression, Condition, FunctionDeclarationBlock, Value } from './types';
+import type { Block, Program, Expression, Condition, FunctionDeclarationBlock, Value, StructInstance } from './types';
 
 export class Interpreter {
 
     private scopes: Map<string, Value>[];
     private arrays: Map<string, Value[]>;
     private functions: Map<string, FunctionDeclarationBlock>;
+    private structDefs: Map<string, string[]>;
 
     constructor() {
         this.scopes = [new Map()];
         this.arrays = new Map();
         this.functions = new Map();
+        this.structDefs = new Map();
     }
 
     private getVariable(name: string): Value {
@@ -93,6 +95,13 @@ export class Interpreter {
                 if (idx < 0 || idx >= arr.length) throw new Error(`Индекс ${idx} за пределами массива ${expr.name}[${arr.length}]`);
                 return arr[idx];
             }
+            case "FieldAccess": {
+                const obj = this.getVariable(expr.object);
+                if (typeof obj !== 'object' || !('_struct' in obj)) throw new Error(`${expr.object} не является структурой`);
+                const val = obj.fields.get(expr.field);
+                if (val === undefined) throw new Error(`Поле ${expr.field} не найдено в структуре ${obj._struct}`);
+                return val;
+            }
             case "BinaryOp": {
                 const left = this.evaluateExpression(expr.left);
                 const right = this.evaluateExpression(expr.right);
@@ -132,7 +141,15 @@ export class Interpreter {
                 break;
             case "Assignment": {
                 const value = this.evaluateExpression(block.expression);
-                this.setVariable(block.variable, value);
+                if (block.variable.includes('.')) {
+                    const [objName, fieldName] = block.variable.split('.');
+                    const obj = this.getVariable(objName);
+                    if (typeof obj !== 'object' || !('_struct' in obj)) throw new Error(`${objName} не является структурой`);
+                    if (!obj.fields.has(fieldName)) throw new Error(`Поле ${fieldName} не найдено в структуре ${obj._struct}`);
+                    obj.fields.set(fieldName, value);
+                } else {
+                    this.setVariable(block.variable, value);
+                }
                 break;
             }
             case "If":
@@ -186,6 +203,20 @@ export class Interpreter {
                 this.functions.set(block.name, block);
                 break;
             }
+            case "StructDeclaration": {
+                this.structDefs.set(block.name, block.fields);
+                break;
+            }
+            case "StructCreate": {
+                const fields = this.structDefs.get(block.structName);
+                if (!fields) throw new Error(`Структура ${block.structName} не объявлена`);
+                const instance: StructInstance = { _struct: block.structName, fields: new Map() };
+                for (const f of fields) {
+                    instance.fields.set(f, 0);
+                }
+                this.setVariable(block.variable, instance);
+                break;
+            }
             case "FunctionCall": {
                 const func = this.functions.get(block.name);
                 if (!func) throw new Error(`Функция ${block.name} не объявлена`);
@@ -210,7 +241,13 @@ export class Interpreter {
         const all = new Map<string, Value>();
         for (const scope of this.scopes) {
             for (const [k, v] of scope) {
-                all.set(k, v);
+                if (typeof v === 'object' && '_struct' in v) {
+                    for (const [fk, fv] of v.fields) {
+                        all.set(`${k}.${fk}`, fv);
+                    }
+                } else {
+                    all.set(k, v);
+                }
             }
         }
         return all;
