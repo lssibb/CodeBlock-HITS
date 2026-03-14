@@ -79,10 +79,12 @@ export class Interpreter {
 
     executeBlock (block:Block): void{
         switch (block.type) {
-            case "VarDeclaration":
-                for (const name of block.variables) {
+            case "VarDeclaration": {
+                const unique = new Set(block.variables);
+                for (const name of unique) {
                     this.variables.set(name,0);
                 }
+            }
                 break;
             case "Assignment":
                 const value = this.evaluateExpression(block.expression);
