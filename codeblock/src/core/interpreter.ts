@@ -1,13 +1,15 @@
-import type { Block, Program, Expression, Condition } from './types';
+import type { Block, Program, Expression, Condition, FunctionDeclarationBlock } from './types';
 
 export class Interpreter {
-    
+
     private variables: Map<string, number>;
     private arrays: Map<string, number[]>;
+    private functions: Map<string, FunctionDeclarationBlock>;
 
     constructor() {
         this.variables = new Map();
         this.arrays = new Map();
+        this.functions = new Map();
     }
 
     private evaluateCondition (cond: Condition): boolean{
@@ -135,6 +137,32 @@ export class Interpreter {
                 const idx = this.evaluateExpression(block.index);
                 if (idx < 0 || idx >= arr.length) throw new Error(`Индекс ${idx} за пределами массива ${block.name}[${arr.length}]`);
                 arr[idx] = this.evaluateExpression(block.expression);
+                break;
+            }
+            case "FunctionDeclaration": {
+                this.functions.set(block.name, block);
+                break;
+            }
+            case "FunctionCall": {
+                const func = this.functions.get(block.name);
+                if (!func) throw new Error(`Функция ${block.name} не объявлена`);
+                if (block.args.length !== func.params.length) {
+                    throw new Error(`Функция ${block.name} ожидает ${func.params.length} аргументов, получено ${block.args.length}`);
+                }
+                const savedVars = new Map(this.variables);
+                for (let i = 0; i < func.params.length; i++) {
+                    this.variables.set(func.params[i], this.evaluateExpression(block.args[i]));
+                }
+                for (const subBlock of func.body) {
+                    this.executeBlock(subBlock);
+                }
+                const results = new Map(this.variables);
+                this.variables = savedVars;
+                for (const [key, val] of results) {
+                    if (savedVars.has(key)) {
+                        this.variables.set(key, val);
+                    }
+                }
                 break;
             }
 

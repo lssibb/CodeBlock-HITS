@@ -1,4 +1,4 @@
-import type { Block, IfBlock, Program, WhileBlock, BeginEndBlock, ForBlock } from "../core/types"
+import type { Block, IfBlock, Program, WhileBlock, BeginEndBlock, ForBlock, FunctionDeclarationBlock } from "../core/types"
 
 
 
@@ -16,7 +16,7 @@ export function addBlock(block:Block): void{
 }
 
 export function addBlockToChild(parentId: string,block:Block, target: 'body' | 'elseBody'): void{
-    const parentBlock = findBlockById(state.program.blocks, parentId) as IfBlock | WhileBlock | BeginEndBlock | ForBlock;
+    const parentBlock = findBlockById(state.program.blocks, parentId) as IfBlock | WhileBlock | BeginEndBlock | ForBlock | FunctionDeclarationBlock;
     if (parentBlock){
         block.id=crypto.randomUUID();
         if (target === 'body') {
@@ -56,7 +56,7 @@ export function findBlockById(blocks: Block[], id: string): Block | undefined {
         if (blockId === id) {
             return block;
         }
-        if (type === 'If' || type === 'While' || type === 'BeginEnd' || type === 'For') {
+        if (type === 'If' || type === 'While' || type === 'BeginEnd' || type === 'For' || type === 'FunctionDeclaration') {
             const result = findBlockById(block.body, id);
             if (result) return result;
         }
@@ -85,7 +85,7 @@ export function insertBlockAt(block: Block, index: number): void {
 
 export function removeBlockRecursive(blocks: Block[], id: string): Block[] {
     return blocks.filter(b => b.id !== id).map(b => {
-        if (b.type === 'If' || b.type === 'While'|| b.type === 'BeginEnd' || b.type === 'For') {
+        if (b.type === 'If' || b.type === 'While'|| b.type === 'BeginEnd' || b.type === 'For' || b.type === 'FunctionDeclaration') {
             b.body = removeBlockRecursive(b.body, id);
         }
         if (b.type === 'If' && b.elseBody) {

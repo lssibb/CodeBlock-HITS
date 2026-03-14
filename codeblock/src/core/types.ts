@@ -84,6 +84,21 @@ export interface ArrayAssignmentBlock {
     expression: Expression;
 }
 
-export type Block = VarDeclarationBlock | AssignmentBlock | IfBlock | WhileBlock | BeginEndBlock | ForBlock | ArrayDeclarationBlock | ArrayAssignmentBlock;
+export interface FunctionDeclarationBlock {
+    type: "FunctionDeclaration";
+    id: string;
+    name: string;
+    params: string[];
+    body: Block[];
+}
+
+export interface FunctionCallBlock {
+    type: "FunctionCall";
+    id: string;
+    name: string;
+    args: Expression[];
+}
+
+export type Block = VarDeclarationBlock | AssignmentBlock | IfBlock | WhileBlock | BeginEndBlock | ForBlock | ArrayDeclarationBlock | ArrayAssignmentBlock | FunctionDeclarationBlock | FunctionCallBlock;
 
 export interface Program {blocks: Block[]};

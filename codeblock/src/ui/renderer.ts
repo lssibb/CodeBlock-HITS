@@ -676,6 +676,142 @@ export function createBlockElement(block:Block): HTMLElement {
             return div;
         }
 
+        case "FunctionDeclaration": {
+            const div = document.createElement('div');
+            div.className = 'block';
+            div.dataset.type = 'func';
+            div.dataset.blockId = block.id;
+            const header = document.createElement('div');
+            const body = document.createElement('div');
+
+            const span1 = document.createElement('span');
+            const spanName = document.createElement('span');
+            const span2 = document.createElement('span');
+            const spanParams = document.createElement('span');
+
+            span1.textContent = 'Функция ';
+            spanName.textContent = block.name;
+            spanName.className = 'editable';
+            span2.textContent = '(';
+            spanParams.textContent = block.params.length > 0 ? block.params.join(', ') : 'параметры...';
+            spanParams.className = 'editable';
+
+            header.appendChild(span1);
+            header.appendChild(spanName);
+            header.appendChild(span2);
+            header.appendChild(spanParams);
+            header.appendChild(document.createTextNode(')'));
+
+            spanName.addEventListener('click', () => {
+                spanName.innerHTML = '';
+                const input = document.createElement('input');
+                input.value = block.name;
+                spanName.appendChild(input);
+                input.focus();
+                input.addEventListener('blur', () => {
+                    updateBlock(block.id, { name: input.value.trim() });
+                });
+            });
+
+            spanParams.addEventListener('click', () => {
+                spanParams.innerHTML = '';
+                const input = document.createElement('input');
+                input.value = block.params.join(', ');
+                spanParams.appendChild(input);
+                input.focus();
+                input.addEventListener('blur', () => {
+                    const newParams = input.value.split(',').map(s => s.trim()).filter(s => s !== '');
+                    updateBlock(block.id, { params: newParams });
+                });
+            });
+
+            div.appendChild(header);
+
+            for (const subBlock of block.body) {
+                body.appendChild(createBlockElement(subBlock));
+            }
+
+            const addButton = document.createElement('button');
+            addButton.textContent = '+ Добавить блок';
+            addButton.addEventListener('click', () => {
+                const newBlock = {
+                    type: 'Assignment',
+                    id: '',
+                    variable: '{укажите переменную}',
+                    expression: { type: 'Number', value: 0 }
+                } as Block;
+                addBlockToChild(block.id, newBlock, 'body');
+            });
+            body.appendChild(addButton);
+            div.appendChild(body);
+
+            const deleteBtn = document.createElement('button');
+            deleteBtn.textContent = 'x';
+            deleteBtn.className = 'delete-btn';
+            deleteBtn.addEventListener('click', () => {
+                removeBlock(block.id);
+            });
+            div.appendChild(deleteBtn);
+            return div;
+        }
+
+        case "FunctionCall": {
+            const div = document.createElement('div');
+            div.className = 'block';
+            div.dataset.type = 'func';
+            div.dataset.blockId = block.id;
+
+            const span1 = document.createElement('span');
+            const spanName = document.createElement('span');
+            const span2 = document.createElement('span');
+            const spanArgs = document.createElement('span');
+
+            span1.textContent = 'Вызов ';
+            spanName.textContent = block.name;
+            spanName.className = 'editable';
+            span2.textContent = '(';
+            spanArgs.textContent = block.args.length > 0 ? block.args.map(a => parseExpression(a)).join(', ') : 'аргументы...';
+            spanArgs.className = 'editable';
+
+            div.appendChild(span1);
+            div.appendChild(spanName);
+            div.appendChild(span2);
+            div.appendChild(spanArgs);
+            div.appendChild(document.createTextNode(')'));
+
+            spanName.addEventListener('click', () => {
+                spanName.innerHTML = '';
+                const input = document.createElement('input');
+                input.value = block.name;
+                spanName.appendChild(input);
+                input.focus();
+                input.addEventListener('blur', () => {
+                    updateBlock(block.id, { name: input.value.trim() });
+                });
+            });
+
+            spanArgs.addEventListener('click', () => {
+                spanArgs.innerHTML = '';
+                const input = document.createElement('input');
+                input.value = block.args.map(a => parseExpression(a)).join(', ');
+                spanArgs.appendChild(input);
+                input.focus();
+                input.addEventListener('blur', () => {
+                    const newArgs = input.value.split(',').map(s => textToExpression(s.trim())).filter(Boolean);
+                    updateBlock(block.id, { args: newArgs });
+                });
+            });
+
+            const deleteBtn = document.createElement('button');
+            deleteBtn.textContent = 'x';
+            deleteBtn.className = 'delete-btn';
+            deleteBtn.addEventListener('click', () => {
+                removeBlock(block.id);
+            });
+            div.appendChild(deleteBtn);
+            return div;
+        }
+
         default: {
             throw new Error(`Неизвестный тип блока`);
         }

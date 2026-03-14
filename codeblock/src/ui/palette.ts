@@ -14,7 +14,9 @@ export function initPalette():void{
         {label:'Блок Begin-End', block:{type:'BeginEnd', id:"", body:[]}},
         {label:'Цикл для', block:{type:'For', id:"", variable:'i', from:{type:'Number',value:1}, to:{type:'Number',value:10}, body:[]}},
         {label:'Объявить массив', block:{type:'ArrayDeclaration', id:"", name:'arr', size:{type:'Number',value:10}}},
-        {label:'Запись в массив', block:{type:'ArrayAssignment', id:"", name:'arr', index:{type:'Number',value:0}, expression:{type:'Number',value:0}}}
+        {label:'Запись в массив', block:{type:'ArrayAssignment', id:"", name:'arr', index:{type:'Number',value:0}, expression:{type:'Number',value:0}}},
+        {label:'Объявить функцию', block:{type:'FunctionDeclaration', id:"", name:'myFunc', params:[], body:[]}},
+        {label:'Вызвать функцию', block:{type:'FunctionCall', id:"", name:'myFunc', args:[]}}
 
     ]
     for(let i = 0; i < buttonTypes.length; i++){
