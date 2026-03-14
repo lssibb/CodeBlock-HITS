@@ -293,8 +293,14 @@ export function createBlockElement(block:Block): HTMLElement {
             div.dataset.blockId = block.id;
             const firstHeader = document.createElement(`div`);
             const ifBody = document.createElement(`div`);
+            ifBody.className = 'block-body';
+            ifBody.dataset.parentId = block.id;
+            ifBody.dataset.target = 'body';
             const secondHeader = document.createElement(`div`);
             const elseBody = document.createElement(`div`);
+            elseBody.className = 'block-body';
+            elseBody.dataset.parentId = block.id;
+            elseBody.dataset.target = 'elseBody';
             const span1 = document.createElement('span');
             const span2 = document.createElement('span');
             const span3 = document.createElement('span');
@@ -388,6 +394,9 @@ export function createBlockElement(block:Block): HTMLElement {
             div.dataset.blockId = block.id;
             const header = document.createElement(`div`);
             const body = document.createElement(`div`);
+            body.className = 'block-body';
+            body.dataset.parentId = block.id;
+            body.dataset.target = 'body';
 
             const span1 = document.createElement('span');
             const span2 = document.createElement('span');
@@ -456,6 +465,9 @@ export function createBlockElement(block:Block): HTMLElement {
             div.dataset.blockId = block.id;
             const header = document.createElement('div');
             const body = document.createElement('div');
+            body.className = 'block-body';
+            body.dataset.parentId = block.id;
+            body.dataset.target = 'body';
 
             header.textContent = 'Начало';
             div.appendChild(header);
@@ -499,6 +511,9 @@ export function createBlockElement(block:Block): HTMLElement {
             div.dataset.blockId = block.id;
             const header = document.createElement('div');
             const body = document.createElement('div');
+            body.className = 'block-body';
+            body.dataset.parentId = block.id;
+            body.dataset.target = 'body';
 
             const span1 = document.createElement('span');
             const spanVar = document.createElement('span');
@@ -715,6 +730,9 @@ export function createBlockElement(block:Block): HTMLElement {
             div.dataset.blockId = block.id;
             const header = document.createElement('div');
             const body = document.createElement('div');
+            body.className = 'block-body';
+            body.dataset.parentId = block.id;
+            body.dataset.target = 'body';
 
             const span1 = document.createElement('span');
             const spanName = document.createElement('span');

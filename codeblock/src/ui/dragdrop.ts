@@ -1,4 +1,4 @@
-import { moveBlock, insertBlockAt } from '../app/state';
+import { moveBlockToChild, insertBlockAt, insertBlockToChild } from '../app/state';
 import type { Block } from '../core/types';
 
 export function initDragDrop(): void {
@@ -7,19 +7,22 @@ export function initDragDrop(): void {
     const observer = new MutationObserver(() => {
         setupBlockDragging();
     });
-    observer.observe(workspace, { childList: true });
+    observer.observe(workspace, { childList: true, subtree: true });
 
     workspace.addEventListener('dragover', (e) => {
         e.preventDefault();
         const hasNew = e.dataTransfer!.types.includes('application/codeblock-new');
         e.dataTransfer!.dropEffect = hasNew ? 'copy' : 'move';
 
-        const target = getDropTarget(e, workspace);
+        const context = getDropContext(e, workspace);
         clearDropIndicators(workspace);
-        if (target) {
-            target.classList.add('drop-above');
+        if (!context) return;
+
+        const { targetEl, container } = getDropIndexInContainer(e, context.container);
+        if (targetEl) {
+            targetEl.classList.add('drop-above');
         } else {
-            workspace.classList.add('drop-end');
+            container.classList.add('drop-end');
         }
     });
 
@@ -31,77 +34,80 @@ export function initDragDrop(): void {
         e.preventDefault();
         clearDropIndicators(workspace);
 
-        const dropIndex = getDropIndex(e, workspace);
+        const context = getDropContext(e, workspace);
+        if (!context) return;
 
+        const { index } = getDropIndexInContainer(e, context.container);
         const newBlockData = e.dataTransfer!.getData('application/codeblock-new');
         if (newBlockData) {
             const block = JSON.parse(newBlockData) as Block;
-            insertBlockAt(block, dropIndex);
+            if (context.targetType === 'root') {
+                insertBlockAt(block, index);
+            } else {
+                insertBlockToChild(context.parentId!, block, context.targetType, index);
+            }
             return;
         }
 
         const blockId = e.dataTransfer!.getData('application/codeblock-move');
         if (blockId) {
-            moveBlock(blockId, dropIndex);
+            moveBlockToChild(blockId, context.parentId, context.targetType, index);
         }
     });
 }
 
 function setupBlockDragging(): void {
     const workspace = document.getElementById('workspace')!;
-    const blocks = workspace.children;
+    const blocks = workspace.querySelectorAll('.block');
 
-    for (let i = 0; i < blocks.length; i++) {
-        const el = blocks[i] as HTMLElement;
-        if (!el.classList.contains('block')) continue;
-        if (el.draggable) continue;
+    for (const el of blocks) {
+        const element = el as HTMLElement;
+        if (element.draggable) continue;
 
-        el.draggable = true;
-        el.addEventListener('dragstart', (e) => {
+        element.draggable = true;
+        element.addEventListener('dragstart', (e) => {
             e.stopPropagation();
-            const id = el.dataset.blockId;
+            const id = element.dataset.blockId;
             if (id) {
                 e.dataTransfer!.setData('application/codeblock-move', id);
                 e.dataTransfer!.effectAllowed = 'move';
-                el.classList.add('dragging');
+                element.classList.add('dragging');
             }
         });
-        el.addEventListener('dragend', () => {
-            el.classList.remove('dragging');
+        element.addEventListener('dragend', () => {
+            element.classList.remove('dragging');
         });
     }
 }
 
-function getDropTarget(e: DragEvent, workspace: HTMLElement): HTMLElement | null {
-    const blocks = workspace.children;
-    for (let i = 0; i < blocks.length; i++) {
-        const el = blocks[i] as HTMLElement;
-        if (!el.classList.contains('block')) continue;
-        const rect = el.getBoundingClientRect();
-        if (e.clientY < rect.top + rect.height / 2) {
-            return el;
+function getDropContext(e: DragEvent, workspace: HTMLElement): { container: HTMLElement; parentId: string | null; targetType: 'body' | 'elseBody' | 'root' } | null {
+    let el = e.target as HTMLElement | null;
+    while (el && el !== workspace) {
+        if (el.classList.contains('block-body') && el.dataset.parentId) {
+            const target = (el.dataset.target as 'body' | 'elseBody') ?? 'body';
+            return { container: el, parentId: el.dataset.parentId, targetType: target };
         }
+        el = el.parentElement;
     }
-    return null;
+    return { container: workspace, parentId: null, targetType: 'root' };
 }
 
-function getDropIndex(e: DragEvent, workspace: HTMLElement): number {
-    const blocks = workspace.children;
+function getDropIndexInContainer(e: DragEvent, container: HTMLElement): { index: number; targetEl: HTMLElement | null; container: HTMLElement } {
+    const blocks = Array.from(container.children).filter((c) => (c as HTMLElement).classList.contains('block')) as HTMLElement[];
     let idx = 0;
-    for (let i = 0; i < blocks.length; i++) {
-        const el = blocks[i] as HTMLElement;
-        if (!el.classList.contains('block')) continue;
+    for (const el of blocks) {
         const rect = el.getBoundingClientRect();
         if (e.clientY < rect.top + rect.height / 2) {
-            return idx;
+            return { index: idx, targetEl: el, container };
         }
         idx++;
     }
-    return idx;
+
+    return { index: idx, targetEl: null, container };
 }
 
 function clearDropIndicators(workspace: HTMLElement): void {
     workspace.classList.remove('drop-end');
-    const blocks = workspace.querySelectorAll('.drop-above');
-    blocks.forEach(b => b.classList.remove('drop-above'));
+    const all = workspace.querySelectorAll('.drop-above, .drop-end');
+    all.forEach((el) => el.classList.remove('drop-above', 'drop-end'));
 }

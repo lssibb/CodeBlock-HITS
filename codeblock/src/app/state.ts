@@ -15,20 +15,40 @@ export function addBlock(block:Block): void{
     render(state.program);
 }
 
-export function addBlockToChild(parentId: string,block:Block, target: 'body' | 'elseBody'): void{
+export function addBlockToChild(parentId: string, block: Block, target: 'body' | 'elseBody'): void {
     const parentBlock = findBlockById(state.program.blocks, parentId) as IfBlock | WhileBlock | BeginEndBlock | ForBlock | FunctionDeclarationBlock;
-    if (parentBlock){
-        block.id=crypto.randomUUID();
+    if (parentBlock) {
+        block.id = crypto.randomUUID();
         if (target === 'body') {
             parentBlock.body.push(block);
-        } 
-        else {
-        const ifParent = parentBlock as IfBlock;
-        if (!ifParent.elseBody) ifParent.elseBody = [];
-        ifParent.elseBody.push(block);
-
+        } else {
+            const ifParent = parentBlock as IfBlock;
+            if (!ifParent.elseBody) ifParent.elseBody = [];
+            ifParent.elseBody.push(block);
         }
-            render(state.program);
+        render(state.program);
+    }
+}
+
+export function insertBlockToChild(parentId: string, block: Block, target: 'body' | 'elseBody', index: number): void {
+    const parentBlock = findBlockById(state.program.blocks, parentId) as IfBlock | WhileBlock | BeginEndBlock | ForBlock | FunctionDeclarationBlock;
+    if (parentBlock) {
+        const newBlock = JSON.parse(JSON.stringify(block)) as Block;
+        newBlock.id = crypto.randomUUID();
+
+        if (target === 'body') {
+            const list = parentBlock.body;
+            const clampedIndex = Math.max(0, Math.min(index, list.length));
+            list.splice(clampedIndex, 0, newBlock);
+        } else {
+            const ifParent = parentBlock as IfBlock;
+            if (!ifParent.elseBody) ifParent.elseBody = [];
+            const list = ifParent.elseBody;
+            const clampedIndex = Math.max(0, Math.min(index, list.length));
+            list.splice(clampedIndex, 0, newBlock);
+        }
+
+        render(state.program);
     }
 }
 
@@ -74,6 +94,32 @@ export function moveBlock(fromId: string, toIndex: number): void {
     if (!block) return;
     state.program.blocks = removeBlockRecursive(state.program.blocks, fromId);
     state.program.blocks.splice(toIndex, 0, block);
+    render(state.program);
+}
+
+export function moveBlockToChild(fromId: string, parentId: string | null, target: 'body' | 'elseBody' | 'root', index: number): void {
+    if (target === 'root') {
+        moveBlock(fromId, index);
+        return;
+    }
+
+    const block = findBlockById(state.program.blocks, fromId);
+    if (!block) return;
+
+    state.program.blocks = removeBlockRecursive(state.program.blocks, fromId);
+
+    const parentBlock = findBlockById(state.program.blocks, parentId!) as IfBlock | WhileBlock | BeginEndBlock | ForBlock | FunctionDeclarationBlock;
+    if (!parentBlock) {
+        render(state.program);
+        return;
+    }
+
+    const list = target === 'body'
+        ? parentBlock.body
+        : ((parentBlock as IfBlock).elseBody ?? ((parentBlock as IfBlock).elseBody = []));
+
+    const clampedIndex = Math.max(0, Math.min(index, list.length));
+    list.splice(clampedIndex, 0, block);
     render(state.program);
 }
 

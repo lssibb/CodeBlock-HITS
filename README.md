@@ -1,2 +1,3 @@
-cd codeblock
-npm run dev
+cd codeblock /n
+npm install /n
+npm run dev 

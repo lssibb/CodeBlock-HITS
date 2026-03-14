@@ -65,14 +65,14 @@ export class Interpreter {
                     case "==": return left === right;
                     case "!=": return left !== right;
                 }
-                throw new Error(`Неизвестный оператор сравнения: ${cond.operator}`);
+                throw new Error('Неизвестный оператор сравнения');
             }
             case "LogicalOp": {
                 const left = this.evaluateCondition(cond.left);
                 const right = this.evaluateCondition(cond.right);
                 if (cond.operator === "AND") return left && right;
                 if (cond.operator === "OR") return left || right;
-                throw new Error(`Неизвестный логический оператор: ${cond.operator}`);
+                throw new Error('Неизвестный логический оператор');
             }
             case "Not":
                 return !this.evaluateCondition(cond.operand);

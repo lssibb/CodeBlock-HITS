@@ -68,6 +68,11 @@ export function initPalette():void{
     stopButton.style.display = 'none';
     stopButton.style.backgroundColor = '#d32f2f';
 
+    const varsButton = document.createElement('button');
+    varsButton.className = 'exec-btn';
+    varsButton.textContent = 'Переменные';
+    varsButton.style.display = 'none';
+
     let interpreter: Interpreter | null = null;
     let stepper: Generator<string, void, void> | null = null;
     let autoTimer: number | null = null;
@@ -80,11 +85,31 @@ export function initPalette():void{
         }
     }
 
+    function buildVarsText(interp: Interpreter): string {
+        const vars = interp.getVariables();
+        const obj = Object.fromEntries(vars);
+        let result = '';
+        for (const key in obj) {
+            result += `${key} = ${obj[key]}\n`;
+        }
+        const arrays = interp.getArrays();
+        for (const [name, arr] of arrays) {
+            result += `${name} = [${arr.join(', ')}]\n`;
+        }
+        return result || 'Нет переменных';
+    }
+
     function showDebugButtons(visible: boolean) {
         executeButton.style.display = visible ? 'none' : '';
         stepButton.style.display = visible ? '' : 'none';
         autoButton.style.display = visible ? '' : 'none';
         stopButton.style.display = visible ? '' : 'none';
+        varsButton.style.display = visible ? '' : 'none';
+    }
+
+    function showVariables() {
+        if (!interpreter) return;
+        alert(buildVarsText(interpreter));
     }
 
     function finishDebug() {
@@ -96,17 +121,7 @@ export function initPalette():void{
         showDebugButtons(false);
 
         if (interp) {
-            const vars = interp.getVariables();
-            const obj = Object.fromEntries(vars);
-            let result = '';
-            for (const key in obj) {
-                result += `${key} = ${obj[key]}\n`;
-            }
-            const arrays = interp.getArrays();
-            for (const [name, arr] of arrays) {
-                result += `${name} = [${arr.join(', ')}]\n`;
-            }
-            alert(result || 'Нет переменных');
+            alert(buildVarsText(interp));
         }
     }
 
@@ -160,6 +175,8 @@ export function initPalette():void{
         if (!interpreter) return;
         finishDebug();
     });
+
+    varsButton.addEventListener('click', showVariables);
 
     const demoButton = document.createElement('button');
     demoButton.className = 'exec-btn';
@@ -254,8 +271,10 @@ export function initPalette():void{
     palette.appendChild(stepButton);
     palette.appendChild(autoButton);
     palette.appendChild(stopButton);
+    palette.appendChild(varsButton);
     palette.appendChild(saveButton);
     palette.appendChild(loadButton);
     palette.appendChild(exportButton);
     palette.appendChild(importButton);
 }
+

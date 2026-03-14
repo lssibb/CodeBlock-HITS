@@ -127,7 +127,8 @@ aside button:active {
     padding: 8px 12px;
     margin: 4px 0;
     border-radius: 4px;
-    display: inline-block;
+    display: block;
+    width: 100%;
     font-size: 18px;
     line-height: 1.6;
     color: #222;
@@ -155,6 +156,7 @@ aside button:active {
 .block[data-type="struct"]    { border-color: #7b8f3f; }
 
 .block .block {
+    display: block;
     margin-left: 16px;
     margin-top: 4px;
 }
@@ -242,6 +244,10 @@ aside button:active {
 }
 
 #workspace.drop-end {
+    border-bottom: 3px dashed #2919d3;
+}
+
+.block-body.drop-end {
     border-bottom: 3px dashed #2919d3;
 }
 
