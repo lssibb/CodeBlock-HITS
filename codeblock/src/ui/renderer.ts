@@ -7,6 +7,14 @@ function parseExpression(expression:Expression): string{
             return String(expression.value);
         }
 
+        case "String":{
+            return `"${expression.value}"`;
+        }
+
+        case "Boolean":{
+            return expression.value ? 'true' : 'false';
+        }
+
         case "Variable":{
             return expression.name;
         }
@@ -80,6 +88,13 @@ function textToExpression(text:string): Expression{
             left:textToExpression(text.slice(0, splitIdx)),
             right:textToExpression(text.slice(splitIdx + splitOp.length))} as Expression;
     }
+
+    if ((text.startsWith('"') && text.endsWith('"')) || (text.startsWith("'") && text.endsWith("'"))) {
+        return {type:"String", value: text.slice(1, -1)};
+    }
+
+    if (text === 'true') return {type:"Boolean", value: true};
+    if (text === 'false') return {type:"Boolean", value: false};
 
     if (text !== '' && !isNaN(Number(text))) {
         return {type:"Number", value:Number(text)};

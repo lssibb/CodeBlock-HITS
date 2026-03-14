@@ -26,8 +26,12 @@ export interface WhileBlock {
     body: Block[];
 }
 
+export type Value = number | string | boolean;
+
 export type Expression =
 | { type: "Number"; value: number }
+| { type: "String"; value: string }
+| { type: "Boolean"; value: boolean }
 | { type: "Variable"; name: string }
 | { type: "ArrayAccess"; name: string; index: Expression }
 | { type: "BinaryOp";
