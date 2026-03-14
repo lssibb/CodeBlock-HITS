@@ -26,22 +26,64 @@ export interface WhileBlock {
     body: Block[];
 }
 
-export type Expression = 
-| { type: "Number"; value: number } 
+export type Expression =
+| { type: "Number"; value: number }
 | { type: "Variable"; name: string }
+| { type: "ArrayAccess"; name: string; index: Expression }
 | { type: "BinaryOp";
     operator: "+"|"-"|"*"|"/"|"%";
     left: Expression;
     right: Expression;
 }
 
-export type Condition = {
+export type Condition =
+| {
     type: "Comparison";
     operator: ">"|"<"|">="|"<="|"=="|"!=";
     left: Expression;
     right: Expression;
 }
+| {
+    type: "LogicalOp";
+    operator: "AND"|"OR";
+    left: Condition;
+    right: Condition;
+}
+| {
+    type: "Not";
+    operand: Condition;
+}
 
-export type Block = VarDeclarationBlock | AssignmentBlock | IfBlock | WhileBlock;
+export interface BeginEndBlock {
+    type: "BeginEnd";
+    id: string;
+    body: Block[];
+}
+
+export interface ForBlock {
+    type: "For";
+    id: string;
+    variable: string;
+    from: Expression;
+    to: Expression;
+    body: Block[];
+}
+
+export interface ArrayDeclarationBlock {
+    type: "ArrayDeclaration";
+    id: string;
+    name: string;
+    size: Expression;
+}
+
+export interface ArrayAssignmentBlock {
+    type: "ArrayAssignment";
+    id: string;
+    name: string;
+    index: Expression;
+    expression: Expression;
+}
+
+export type Block = VarDeclarationBlock | AssignmentBlock | IfBlock | WhileBlock | BeginEndBlock | ForBlock | ArrayDeclarationBlock | ArrayAssignmentBlock;
 
 export interface Program {blocks: Block[]};

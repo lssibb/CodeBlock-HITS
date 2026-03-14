@@ -3,29 +3,36 @@ import type { Block, Program, Expression, Condition } from './types';
 export class Interpreter {
     
     private variables: Map<string, number>;
+    private arrays: Map<string, number[]>;
 
     constructor() {
         this.variables = new Map();
+        this.arrays = new Map();
     }
 
     private evaluateCondition (cond: Condition): boolean{
-        const left = this.evaluateExpression(cond.left);
-        const right = this.evaluateExpression(cond.right);
-        switch (cond.operator){
-            case ">": 
-                return left > right;
-            case "<":
-                return left  < right;
-            case ">=":
-                return left >= right;
-            case "<=": 
-                return left <= right;
-            case "==": 
-                return left === right;
-            case "!=": 
-                return left !== right;
-            default:
-                throw new Error(`Неизвестный оператор сравнения: ${cond.operator}`);
+        switch (cond.type) {
+            case "Comparison": {
+                const left = this.evaluateExpression(cond.left);
+                const right = this.evaluateExpression(cond.right);
+                switch (cond.operator){
+                    case ">": return left > right;
+                    case "<": return left < right;
+                    case ">=": return left >= right;
+                    case "<=": return left <= right;
+                    case "==": return left === right;
+                    case "!=": return left !== right;
+                }
+            }
+            case "LogicalOp": {
+                const left = this.evaluateCondition(cond.left);
+                const right = this.evaluateCondition(cond.right);
+                if (cond.operator === "AND") return left && right;
+                if (cond.operator === "OR") return left || right;
+                throw new Error(`Неизвестный логический оператор: ${cond.operator}`);
+            }
+            case "Not":
+                return !this.evaluateCondition(cond.operand);
         }
     }
 
@@ -39,6 +46,13 @@ export class Interpreter {
                     throw new Error(`Переменная ${expr.name} не объявлена`);
                 }
                 return val;
+            case "ArrayAccess": {
+                const arr = this.arrays.get(expr.name);
+                if (!arr) throw new Error(`Массив ${expr.name} не объявлен`);
+                const idx = this.evaluateExpression(expr.index);
+                if (idx < 0 || idx >= arr.length) throw new Error(`Индекс ${idx} за пределами массива ${expr.name}[${arr.length}]`);
+                return arr[idx];
+            }
             case "BinaryOp":
                 const left = this.evaluateExpression(expr.left);
                 const right = this.evaluateExpression(expr.right);
@@ -91,11 +105,46 @@ export class Interpreter {
                         this.executeBlock(subBlock);
                     }
                 }
+                break;
+                case "BeginEnd":
+                for (const subBlock of block.body) {
+                    this.executeBlock(subBlock);
+                }
+                break;
+            case "For": {
+                const from = this.evaluateExpression(block.from);
+                const to = this.evaluateExpression(block.to);
+                for (let i = from; i <= to; i++) {
+                    this.variables.set(block.variable, i);
+                    for (const subBlock of block.body) {
+                        this.executeBlock(subBlock);
+                    }
+                }
+                break;
+            }
+            case "ArrayDeclaration": {
+                const size = this.evaluateExpression(block.size);
+                this.arrays.set(block.name, new Array(size).fill(0));
+                break;
+            }
+            case "ArrayAssignment": {
+                const arr = this.arrays.get(block.name);
+                if (!arr) throw new Error(`Массив ${block.name} не объявлен`);
+                const idx = this.evaluateExpression(block.index);
+                if (idx < 0 || idx >= arr.length) throw new Error(`Индекс ${idx} за пределами массива ${block.name}[${arr.length}]`);
+                arr[idx] = this.evaluateExpression(block.expression);
+                break;
+            }
+
         }
     }
     
     getVariables(): Map<string, number> {
         return this.variables;
+    }
+
+    getArrays(): Map<string, number[]> {
+        return this.arrays;
     }
 
     execute (program: Program): void {

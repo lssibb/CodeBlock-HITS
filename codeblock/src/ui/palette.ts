@@ -11,13 +11,24 @@ export function initPalette():void{
         {label:'Присвоить значение', block:{type:'Assignment',id:"",variable:'{укажите переменную}',expression:{type:'Number',value:0}}},
         {label:'Условие', block:{type:'If',id:"",condition:{type: "Comparison",left:{type:'Number',value:0},right:{type:'Number',value:0},operator:"=="},body:[]}},
         {label:'Цикл пока',block:{type:'While',id:"",condition:{type: "Comparison",left:{type:'Number',value:0},right:{type:'Number',value:0},operator:"=="},body:[]}},
+        {label:'Блок Begin-End', block:{type:'BeginEnd', id:"", body:[]}},
+        {label:'Цикл для', block:{type:'For', id:"", variable:'i', from:{type:'Number',value:1}, to:{type:'Number',value:10}, body:[]}},
+        {label:'Объявить массив', block:{type:'ArrayDeclaration', id:"", name:'arr', size:{type:'Number',value:10}}},
+        {label:'Запись в массив', block:{type:'ArrayAssignment', id:"", name:'arr', index:{type:'Number',value:0}, expression:{type:'Number',value:0}}}
+
     ]
-    for(const button of buttonTypes){
+    for(let i = 0; i < buttonTypes.length; i++){
+        const button = buttonTypes[i];
         const element = document.createElement('button');
         element.textContent=button.label;
+        element.draggable = true;
         element.addEventListener('click', ()=>{
             addBlock(button.block);
         })
+        element.addEventListener('dragstart', (e) => {
+            e.dataTransfer!.setData('application/codeblock-new', JSON.stringify(button.block));
+            e.dataTransfer!.effectAllowed = 'copyMove';
+        });
         palette.appendChild(element);
     }
 
@@ -25,9 +36,21 @@ export function initPalette():void{
         executeButton.className = 'exec-btn';
         executeButton.textContent='Выполнить';
         executeButton.addEventListener('click', ()=>{
-            const interpreter = new Interpreter();
+            try {const interpreter = new Interpreter();
             interpreter.execute(state.program);
-            alert(JSON.stringify(Object.fromEntries(interpreter.getVariables()), null, 2))
+            const vars = interpreter.getVariables();
+            const obj = Object.fromEntries(vars);
+            let result = '';
+            for (const key in obj) {
+                result += `${key} = ${obj[key]}\n`;
+            }
+            const arrays = interpreter.getArrays();
+            for (const [name, arr] of arrays) {
+                result += `${name} = [${arr.join(', ')}]\n`;
+            }
+            alert(result || 'Нет переменных');
+
+            } catch (error) { alert(`Ошибка выполнения: ${error instanceof Error ? error.message : String(error)}`);}
         })
         palette.appendChild(executeButton);
 

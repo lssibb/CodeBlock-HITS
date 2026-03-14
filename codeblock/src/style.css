@@ -1,3 +1,9 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
 body {
     display: flex;
     height: 100vh;
@@ -5,6 +11,7 @@ body {
     background-color: #f0f2f5;
 }
 
+/* --- Sidebar --- */
 aside {
     width: 250px;
     display: flex;
@@ -14,66 +21,226 @@ aside {
     justify-content: space-between;
     background-color: #ffffff;
     box-shadow: 2px 0 8px rgba(0,0,0,0.1);
+    overflow-y: auto;
+    z-index: 1;
 }
 
-main {
-    flex: 1;
-    border-left: 2px solid #ccc;
-    padding-left: 10px;
-}
-
-.block {
-    border: 2px solid #2919d3;
-    padding: 8px;
-    margin: 4px;
-    border-radius: 4px;
-    display: inline-block;
-    font-size: 18px;
-}
-
-.editable {
-    background-color: #d9b84d;
-    border-radius: 3px;
-    padding: 0 4px;
+aside button {
+    width: 100%;
+    text-align: left;
+    padding: 8px 12px 8px 28px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #333;
+    background-color: #ffffff;
+    border: 1px solid #ccc;
+    border-radius: 6px;
     cursor: pointer;
+    transition: background-color 0.15s, border-color 0.15s;
+    position: relative;
+}
+
+aside button::before {
+    content: '';
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+}
+
+aside button:nth-child(1)::before { background-color: #5b7fbf; }
+aside button:nth-child(2)::before { background-color: #6ba368; }
+aside button:nth-child(3)::before { background-color: #c9a832; }
+aside button:nth-child(4)::before { background-color: #8b6bae; }
+aside button:nth-child(5)::before { background-color: #5ba3a3; }
+aside button:nth-child(6)::before { background-color: #8b6bae; }
+aside button:nth-child(7)::before { background-color: #bf7b3f; }
+aside button:nth-child(8)::before { background-color: #bf7b3f; }
+
+aside button:hover {
+    background-color: #f5f5f5;
+    border-color: #aaa;
+}
+
+aside button:active {
+    background-color: #eee;
+}
+
+/* --- Execute button --- */
+.exec-btn {
+    margin-top: auto;
+    width: 100%;
+    padding: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.15s;
+}
+
+.exec-btn::before {
+    content: '\25B6\0020';
+}
+
+.exec-btn:hover {
+    background-color: #45a049;
+}
+
+.exec-btn:active {
+    background-color: #3d8b40;
+}
+
+/* --- Viewport with grid --- */
+#viewport {
+    flex: 1;
+    overflow: auto;
+    background-color: #f8f9fb;
+    background-image:
+        linear-gradient(rgba(0,0,0,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,0,0,0.03) 1px, transparent 1px);
+    background-size: 20px 20px;
+    border-left: 2px solid #ccc;
 }
 
 #workspace {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
+    gap: 6px;
     padding: 24px;
+    min-height: 100%;
+    transform-origin: top left;
 }
 
-.exec-btn {
-    margin-top: auto;
-    width: 100%;
-    padding: 10px;
-    font-size: 16px;
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-}
-
-.exec-btn::before {
-    content: '▶ ';
-}
-
-
-.exec-btn:hover {
-    background-color: #45a049;
-}
-
-button {
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    padding: 8px 12px;
+/* --- Blocks base --- */
+.block {
     background-color: #ffffff;
-    cursor: pointer;
+    border: 2px solid #2919d3;
+    border-left: 5px solid #2919d3;
+    padding: 8px 12px;
+    margin: 4px 0;
+    border-radius: 4px;
+    display: inline-block;
+    font-size: 18px;
+    line-height: 1.6;
+    color: #222;
+    position: relative;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    transition: box-shadow 0.15s;
 }
 
-button:hover {
-    background-color: #e8e8e8;
+.block:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+}
+
+/* --- Block type accent --- */
+.block[data-type="var"]       { border-color: #5b7fbf; }
+.block[data-type="assign"]    { border-color: #6ba368; }
+.block[data-type="condition"] { border-color: #c9a832; }
+.block[data-type="loop"]      { border-color: #8b6bae; }
+.block[data-type="group"]     { border-color: #5ba3a3; }
+.block[data-type="array"]     { border-color: #bf7b3f; }
+
+/* --- Nested blocks --- */
+.block .block {
+    margin-left: 16px;
+    margin-top: 4px;
+}
+
+/* --- Editable fields --- */
+.editable {
+    background-color: #e2e4e9;
+    border-radius: 3px;
+    padding: 0 4px;
+    cursor: pointer;
+    font-family: 'Consolas', 'Fira Code', monospace;
+    font-size: 16px;
+    transition: background-color 0.15s;
+}
+
+.editable:hover {
+    background-color: #d5d7dd;
+}
+
+.editable input {
+    font-family: 'Consolas', 'Fira Code', monospace;
+    font-size: 15px;
+    border: 1px solid #999;
+    border-radius: 3px;
+    padding: 1px 4px;
+    outline: none;
+    background-color: #fff;
+    color: #222;
+    min-width: 40px;
+}
+
+.editable input:focus {
+    border-color: #2919d3;
+    box-shadow: 0 0 0 2px rgba(41, 25, 211, 0.15);
+}
+
+/* --- Delete button --- */
+.delete-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    margin-left: 8px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #999;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 3px;
+    cursor: pointer;
+    vertical-align: middle;
+    transition: all 0.15s;
+}
+
+.delete-btn:hover {
+    color: #d32f2f;
+    background-color: #fdeaea;
+    border-color: #f5c6c6;
+}
+
+/* --- Add block button (inside containers) --- */
+.block button:not(.delete-btn) {
+    font-size: 12px;
+    color: #888;
+    background: transparent;
+    border: 1px dashed #ccc;
+    border-radius: 4px;
+    padding: 4px 10px;
+    margin-top: 4px;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.block button:not(.delete-btn):hover {
+    color: #555;
+    border-color: #999;
+    background-color: #f9f9f9;
+}
+
+/* --- Drag & Drop --- */
+.block.dragging {
+    opacity: 0.4;
+}
+
+.block.drop-above {
+    border-top: 3px solid #2919d3;
+}
+
+#workspace.drop-end {
+    border-bottom: 3px dashed #2919d3;
 }
 
 /* --- Responsive --- */
@@ -97,10 +264,14 @@ button:hover {
         box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
 
-    main {
+    aside button {
+        width: auto;
+        flex: 0 0 auto;
+    }
+
+    #viewport {
         border-left: none;
         border-top: 2px solid #ccc;
-        padding-left: 0;
     }
 
     .exec-btn {
@@ -112,6 +283,11 @@ button:hover {
     aside {
         padding: 8px;
         gap: 4px;
+    }
+
+    aside button {
+        font-size: 12px;
+        padding: 8px 10px 8px 24px;
     }
 
     #workspace {

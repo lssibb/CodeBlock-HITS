@@ -1,4 +1,4 @@
-import type { Block, IfBlock, Program, WhileBlock } from "../core/types"
+import type { Block, IfBlock, Program, WhileBlock, BeginEndBlock, ForBlock } from "../core/types"
 
 
 
@@ -16,7 +16,7 @@ export function addBlock(block:Block): void{
 }
 
 export function addBlockToChild(parentId: string,block:Block, target: 'body' | 'elseBody'): void{
-    const parentBlock = state.program.blocks.find( b => b.id ===parentId) as IfBlock | WhileBlock;
+    const parentBlock = findBlockById(state.program.blocks, parentId) as IfBlock | WhileBlock | BeginEndBlock | ForBlock;
     if (parentBlock){
         block.id=crypto.randomUUID();
         if (target === 'body') {
@@ -33,12 +33,14 @@ export function addBlockToChild(parentId: string,block:Block, target: 'body' | '
 }
 
 export function removeBlock(id:string):void{
-    state.program.blocks = state.program.blocks.filter(b => b.id !== id);
-    render(state.program);
+    state.program.blocks = removeBlockRecursive(state.program.blocks, id);
+render(state.program);
+
 }
 
 export function updateBlock(id: string, changes: Partial<Block>): void {
-    const block = state.program.blocks.find(b => b.id === id)
+    const block = findBlockById(state.program.blocks, id)
+
     if (block) {
         Object.assign(block, changes)
         render(state.program)
@@ -47,16 +49,19 @@ export function updateBlock(id: string, changes: Partial<Block>): void {
 
 export function findBlockById(blocks: Block[], id: string): Block | undefined {
     for (const block of blocks) {
+
+    const { id: blockId, type } = block;
+
         
-        if (block.id === id) {
+        if (blockId === id) {
             return block;
         }
-        if (block.type === 'If' || block.type === 'While') {
+        if (type === 'If' || type === 'While' || type === 'BeginEnd' || type === 'For') {
             const result = findBlockById(block.body, id);
             if (result) return result;
         }
         
-        if (block.type === 'If' && block.elseBody) {
+        if (type === 'If' && block.elseBody) {
             const result = findBlockById(block.elseBody, id);
             if (result) return result;
         }
@@ -64,3 +69,29 @@ export function findBlockById(blocks: Block[], id: string): Block | undefined {
     
     return undefined;
 }
+export function moveBlock(fromId: string, toIndex: number): void {
+    const block = findBlockById(state.program.blocks, fromId);
+    if (!block) return;
+    state.program.blocks = removeBlockRecursive(state.program.blocks, fromId);
+    state.program.blocks.splice(toIndex, 0, block);
+    render(state.program);
+}
+
+export function insertBlockAt(block: Block, index: number): void {
+    block.id = crypto.randomUUID();
+    state.program.blocks.splice(index, 0, block);
+    render(state.program);
+}
+
+export function removeBlockRecursive(blocks: Block[], id: string): Block[] {
+    return blocks.filter(b => b.id !== id).map(b => {
+        if (b.type === 'If' || b.type === 'While'|| b.type === 'BeginEnd' || b.type === 'For') {
+            b.body = removeBlockRecursive(b.body, id);
+        }
+        if (b.type === 'If' && b.elseBody) {
+            b.elseBody = removeBlockRecursive(b.elseBody, id);
+        }
+        return b;
+    });
+}
+
