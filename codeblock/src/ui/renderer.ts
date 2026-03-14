@@ -1,5 +1,5 @@
 import type { Block, Program, Expression, Condition } from '../core/types';
-import { updateBlock, addBlockToChild, removeBlock } from '../app/state';
+import { updateBlock, addBlockToChild, removeBlock, state } from '../app/state';
 
 function parseExpression(expression:Expression): string{
     switch(expression.type){
@@ -363,7 +363,11 @@ export function createBlockElement(block:Block): HTMLElement {
                 input.focus();
 
                 input.addEventListener('blur',()=>{
-                    updateBlock(block.id,{condition:textToCondition(input.value)})
+                    try {
+                        updateBlock(block.id,{condition:textToCondition(input.value)})
+                    } catch {
+                        render(state.program);
+                    }
                 })
             })
 
@@ -407,7 +411,11 @@ export function createBlockElement(block:Block): HTMLElement {
                 input.focus();
 
                 input.addEventListener('blur',()=>{
-                    updateBlock(block.id,{condition:textToCondition(input.value)})
+                    try {
+                        updateBlock(block.id,{condition:textToCondition(input.value)})
+                    } catch {
+                        render(state.program);
+                    }
                 })
             })
 
