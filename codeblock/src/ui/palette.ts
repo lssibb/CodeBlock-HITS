@@ -1,6 +1,7 @@
 import { addBlock, state } from "../app/state.ts";
-import type { Block} from '../core/types';
+import type { Block } from '../core/types';
 import {Interpreter} from '../core/interpreter.ts'
+import { render } from '../ui/renderer.ts'
 
 
 export function initPalette():void{
@@ -164,6 +165,34 @@ export function initPalette():void{
         finishDebug();
     });
 
+    const demoButton = document.createElement('button');
+    demoButton.className = 'exec-btn';
+    demoButton.textContent = 'Демо: Пузырёк';
+    demoButton.style.backgroundColor = '#2919d3';
+    demoButton.addEventListener('click', () => {
+        state.program.blocks = [
+            {type:'ArrayDeclaration', id:crypto.randomUUID(), name:'arr', size:{type:'Number', value:5}},
+            {type:'ArrayAssignment', id:crypto.randomUUID(), name:'arr', index:{type:'Number',value:0}, expression:{type:'Number',value:5}},
+            {type:'ArrayAssignment', id:crypto.randomUUID(), name:'arr', index:{type:'Number',value:1}, expression:{type:'Number',value:3}},
+            {type:'ArrayAssignment', id:crypto.randomUUID(), name:'arr', index:{type:'Number',value:2}, expression:{type:'Number',value:8}},
+            {type:'ArrayAssignment', id:crypto.randomUUID(), name:'arr', index:{type:'Number',value:3}, expression:{type:'Number',value:1}},
+            {type:'ArrayAssignment', id:crypto.randomUUID(), name:'arr', index:{type:'Number',value:4}, expression:{type:'Number',value:4}},
+            {type:'VarDeclaration', id:crypto.randomUUID(), variables:['n','i','j','temp']},
+            {type:'Assignment', id:crypto.randomUUID(), variable:'n', expression:{type:'Number',value:5}},
+            {type:'For', id:crypto.randomUUID(), variable:'i', from:{type:'Number',value:0}, to:{type:'BinaryOp',operator:'-',left:{type:'Variable',name:'n'},right:{type:'Number',value:2}}, body:[
+                {type:'For', id:crypto.randomUUID(), variable:'j', from:{type:'Number',value:0}, to:{type:'BinaryOp',operator:'-',left:{type:'BinaryOp',operator:'-',left:{type:'Variable',name:'n'},right:{type:'Variable',name:'i'}},right:{type:'Number',value:2}}, body:[
+                    {type:'If', id:crypto.randomUUID(), condition:{type:'Comparison',operator:'>',left:{type:'ArrayAccess',name:'arr',index:{type:'Variable',name:'j'}},right:{type:'ArrayAccess',name:'arr',index:{type:'BinaryOp',operator:'+',left:{type:'Variable',name:'j'},right:{type:'Number',value:1}}}}, body:[
+                        {type:'Assignment', id:crypto.randomUUID(), variable:'temp', expression:{type:'ArrayAccess',name:'arr',index:{type:'Variable',name:'j'}}},
+                        {type:'ArrayAssignment', id:crypto.randomUUID(), name:'arr', index:{type:'Variable',name:'j'}, expression:{type:'ArrayAccess',name:'arr',index:{type:'BinaryOp',operator:'+',left:{type:'Variable',name:'j'},right:{type:'Number',value:1}}}},
+                        {type:'ArrayAssignment', id:crypto.randomUUID(), name:'arr', index:{type:'BinaryOp',operator:'+',left:{type:'Variable',name:'j'},right:{type:'Number',value:1}}, expression:{type:'Variable',name:'temp'}}
+                    ]}
+                ]}
+            ]}
+        ];
+        render(state.program);
+    });
+
+    palette.appendChild(demoButton);
     palette.appendChild(toggleButton);
     palette.appendChild(executeButton);
     palette.appendChild(stepButton);
