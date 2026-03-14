@@ -4,13 +4,11 @@ import type { Block } from '../core/types';
 export function initDragDrop(): void {
     const workspace = document.getElementById('workspace')!;
 
-    // Make existing blocks draggable after each render
     const observer = new MutationObserver(() => {
         setupBlockDragging();
     });
     observer.observe(workspace, { childList: true });
 
-    // Workspace is a drop target
     workspace.addEventListener('dragover', (e) => {
         e.preventDefault();
         const hasNew = e.dataTransfer!.types.includes('application/codeblock-new');
@@ -35,7 +33,6 @@ export function initDragDrop(): void {
 
         const dropIndex = getDropIndex(e, workspace);
 
-        // From palette (new block)
         const newBlockData = e.dataTransfer!.getData('application/codeblock-new');
         if (newBlockData) {
             const block = JSON.parse(newBlockData) as Block;
@@ -43,7 +40,6 @@ export function initDragDrop(): void {
             return;
         }
 
-        // Reorder existing block
         const blockId = e.dataTransfer!.getData('application/codeblock-move');
         if (blockId) {
             moveBlock(blockId, dropIndex);

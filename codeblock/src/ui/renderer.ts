@@ -45,7 +45,6 @@ function textToExpression(text:string): Expression{
 
     text = text.trim();
 
-    // снять внешние скобки: (x + 5) → x + 5, но (a)+(b) — не трогать
     while (text[0] === '(' && text[text.length - 1] === ')') {
         let depth = 0, wraps = true;
         for (let i = 0; i < text.length - 1; i++) {
@@ -57,7 +56,6 @@ function textToExpression(text:string): Expression{
         text = text.slice(1, -1).trim();
     }
 
-    // найти последний оператор на depth=0 (сначала +/-, потом */%)
     let splitIdx = -1;
     let splitOp = '';
     for (const ops of [operatorsLow, operatorsHigh]) {
@@ -100,7 +98,6 @@ function textToExpression(text:string): Expression{
 function textToСondition(text:string): Condition{
     text = text.trim();
 
-    // снять внешние скобки
     while (text.startsWith('(') && text.endsWith(')')) {
         let depth = 0, wraps = true;
         for (let i = 0; i < text.length - 1; i++) {
@@ -112,12 +109,10 @@ function textToСondition(text:string): Condition{
         text = text.slice(1, -1).trim();
     }
 
-    // NOT
     if (text.toUpperCase().startsWith('NOT ')) {
         return { type: 'Not', operand: textToСondition(text.slice(4)) };
     }
 
-    // OR (lowest priority) — ищем последний OR на depth=0
     let depth = 0;
     let lastOr = -1;
     let lastAnd = -1;
@@ -154,7 +149,6 @@ function textToСondition(text:string): Condition{
         };
     }
 
-    // Comparison
     const operatorsDouble = ['<=', '>=', '==', '!='];
     const operatorsSingle = ['<', '>'];
 
@@ -198,12 +192,8 @@ export function createBlockElement(block:Block): HTMLElement {
                 input.focus();
 
                 input.addEventListener('blur',()=>{
-
                     const newVariables=input.value.split(', ').filter(v => v.trim() !== '');
-
                     updateBlock(block.id,{variables:newVariables});
-
-
                 })
 
             })
@@ -245,12 +235,8 @@ export function createBlockElement(block:Block): HTMLElement {
                 input.focus();
 
                 input.addEventListener('blur',()=>{
-
                     const newVariable=input.value.trim();
-
                     updateBlock(block.id,{variable:newVariable});
-
-
                 })
             })
 
@@ -263,9 +249,7 @@ export function createBlockElement(block:Block): HTMLElement {
                 input.focus();
 
                 input.addEventListener('blur',()=>{
-
                     updateBlock(block.id,{expression:textToExpression(input.value)})
-
                 })
             })
             const deleteBtn = document.createElement('button');
@@ -355,12 +339,9 @@ export function createBlockElement(block:Block): HTMLElement {
                 input.focus();
 
                 input.addEventListener('blur',()=>{
-
                     updateBlock(block.id,{condition:textToСondition(input.value)})
-
                 })
             })
-
 
             const deleteBtn = document.createElement('button');
                 deleteBtn.textContent = 'x';
@@ -402,9 +383,7 @@ export function createBlockElement(block:Block): HTMLElement {
                 input.focus();
 
                 input.addEventListener('blur',()=>{
-
                     updateBlock(block.id,{condition:textToСondition(input.value)})
-
                 })
             })
 
@@ -438,7 +417,7 @@ export function createBlockElement(block:Block): HTMLElement {
             return div;
         }
 
-                    case "BeginEnd":{
+        case "BeginEnd":{
             const div = document.createElement('div');
             div.className = 'block';
             div.dataset.type = 'group';
@@ -480,8 +459,6 @@ export function createBlockElement(block:Block): HTMLElement {
             div.appendChild(deleteBtn);
             return div;
         }
-
-
 
         case "For": {
             const div = document.createElement('div');

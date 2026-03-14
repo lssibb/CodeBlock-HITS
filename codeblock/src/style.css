@@ -11,7 +11,6 @@ body {
     background-color: #f0f2f5;
 }
 
-/* --- Sidebar --- */
 aside {
     width: 250px;
     display: flex;
@@ -69,7 +68,6 @@ aside button:active {
     background-color: #eee;
 }
 
-/* --- Execute button --- */
 .exec-btn {
     margin-top: auto;
     width: 100%;
@@ -96,7 +94,6 @@ aside button:active {
     background-color: #3d8b40;
 }
 
-/* --- Viewport with grid --- */
 #viewport {
     flex: 1;
     overflow: auto;
@@ -118,7 +115,6 @@ aside button:active {
     transform-origin: top left;
 }
 
-/* --- Blocks base --- */
 .block {
     background-color: #ffffff;
     border: 2px solid #2919d3;
@@ -139,7 +135,11 @@ aside button:active {
     box-shadow: 0 2px 8px rgba(0,0,0,0.12);
 }
 
-/* --- Block type accent --- */
+.block.active {
+    border-color: #e8a020;
+    background-color: #fff8e1;
+}
+
 .block[data-type="var"]       { border-color: #5b7fbf; }
 .block[data-type="assign"]    { border-color: #6ba368; }
 .block[data-type="condition"] { border-color: #c9a832; }
@@ -147,13 +147,11 @@ aside button:active {
 .block[data-type="group"]     { border-color: #5ba3a3; }
 .block[data-type="array"]     { border-color: #bf7b3f; }
 
-/* --- Nested blocks --- */
 .block .block {
     margin-left: 16px;
     margin-top: 4px;
 }
 
-/* --- Editable fields --- */
 .editable {
     background-color: #e2e4e9;
     border-radius: 3px;
@@ -185,7 +183,6 @@ aside button:active {
     box-shadow: 0 0 0 2px rgba(41, 25, 211, 0.15);
 }
 
-/* --- Delete button --- */
 .delete-btn {
     display: inline-flex;
     align-items: center;
@@ -211,7 +208,6 @@ aside button:active {
     border-color: #f5c6c6;
 }
 
-/* --- Add block button (inside containers) --- */
 .block button:not(.delete-btn) {
     font-size: 12px;
     color: #888;
@@ -230,7 +226,6 @@ aside button:active {
     background-color: #f9f9f9;
 }
 
-/* --- Drag & Drop --- */
 .block.dragging {
     opacity: 0.4;
 }
@@ -243,7 +238,6 @@ aside button:active {
     border-bottom: 3px dashed #2919d3;
 }
 
-/* --- Responsive --- */
 @media (max-width: 1200px) {
     aside {
         width: 200px;
