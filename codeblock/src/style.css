@@ -91,11 +91,11 @@ aside button:active {
     content: '\25B6\0020';
 }
 
-.exec-btn:hover {
+.exec-run:hover {
     background-color: #45a049;
 }
 
-.exec-btn:active {
+.exec-run:active {
     background-color: #3d8b40;
 }
 
