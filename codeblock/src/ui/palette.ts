@@ -49,7 +49,7 @@ export function initPalette():void{
     });
 
     const executeButton = document.createElement('button');
-    executeButton.className = 'exec-btn';
+    executeButton.className = 'exec-btn exec-run';
     executeButton.textContent='Выполнить';
 
     const stepButton = document.createElement('button');
@@ -69,7 +69,7 @@ export function initPalette():void{
     stopButton.style.backgroundColor = '#d32f2f';
 
     let interpreter: Interpreter | null = null;
-    let blockIndex = 0;
+    let stepper: Generator<string, void, void> | null = null;
     let autoTimer: number | null = null;
 
     function highlightBlock(id: string | null) {
@@ -92,7 +92,7 @@ export function initPalette():void{
         highlightBlock(null);
         const interp = interpreter;
         interpreter = null;
-        blockIndex = 0;
+        stepper = null;
         showDebugButtons(false);
 
         if (interp) {
@@ -111,16 +111,12 @@ export function initPalette():void{
     }
 
     function doStep() {
-        if (!interpreter) return;
-        const blocks = state.program.blocks;
-        if (blockIndex < blocks.length) {
-            interpreter.executeBlock(blocks[blockIndex]);
-            blockIndex++;
-        }
-        if (blockIndex < blocks.length) {
-            highlightBlock(blocks[blockIndex].id);
-        } else {
+        if (!stepper) return;
+        const result = stepper.next();
+        if (result.done) {
             finishDebug();
+        } else {
+            highlightBlock(result.value);
         }
     }
 
@@ -146,9 +142,9 @@ export function initPalette():void{
             }
         } else {
             interpreter = new Interpreter();
-            blockIndex = 0;
+            stepper = interpreter.stepThrough(state.program.blocks);
             showDebugButtons(true);
-            highlightBlock(state.program.blocks[0].id);
+            doStep();
         }
     });
 

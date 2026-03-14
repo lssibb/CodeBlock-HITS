@@ -65,6 +65,7 @@ export class Interpreter {
                     case "==": return left === right;
                     case "!=": return left !== right;
                 }
+                throw new Error(`Неизвестный оператор сравнения: ${cond.operator}`);
             }
             case "LogicalOp": {
                 const left = this.evaluateCondition(cond.left);
@@ -260,6 +261,55 @@ export class Interpreter {
     execute (program: Program): void {
         for (const block of program.blocks) {
             this.executeBlock(block);
+        }
+    }
+
+    *stepThrough(blocks: Block[]): Generator<string, void, void> {
+        for (const block of blocks) {
+            yield block.id;
+            switch (block.type) {
+                case "If":
+                    if (this.evaluateCondition(block.condition)) {
+                        yield* this.stepThrough(block.body);
+                    } else if (block.elseBody) {
+                        yield* this.stepThrough(block.elseBody);
+                    }
+                    break;
+                case "While":
+                    while (this.evaluateCondition(block.condition)) {
+                        yield* this.stepThrough(block.body);
+                    }
+                    break;
+                case "For": {
+                    const from = this.toNumber(this.evaluateExpression(block.from));
+                    const to = this.toNumber(this.evaluateExpression(block.to));
+                    for (let i = from; i <= to; i++) {
+                        this.setVariable(block.variable, i);
+                        yield* this.stepThrough(block.body);
+                    }
+                    break;
+                }
+                case "BeginEnd":
+                    yield* this.stepThrough(block.body);
+                    break;
+                case "FunctionCall": {
+                    const func = this.functions.get(block.name);
+                    if (!func) throw new Error(`Функция ${block.name} не объявлена`);
+                    if (block.args.length !== func.params.length) {
+                        throw new Error(`Функция ${block.name} ожидает ${func.params.length} аргументов, получено ${block.args.length}`);
+                    }
+                    this.pushScope();
+                    for (let i = 0; i < func.params.length; i++) {
+                        this.declareVariable(func.params[i], this.evaluateExpression(block.args[i]));
+                    }
+                    yield* this.stepThrough(func.body);
+                    this.popScope();
+                    break;
+                }
+                default:
+                    this.executeBlock(block);
+                    break;
+            }
         }
     }
 }

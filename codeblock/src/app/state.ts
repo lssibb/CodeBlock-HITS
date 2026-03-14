@@ -9,7 +9,7 @@ export const state: { program: Program } = {
 }
 
 export function addBlock(block:Block): void{
-    const newBlock = { ...block };
+    const newBlock = JSON.parse(JSON.stringify(block)) as Block;
     newBlock.id=crypto.randomUUID();
     state.program.blocks.push(newBlock);
     render(state.program);

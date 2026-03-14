@@ -39,7 +39,7 @@ aside button {
     position: relative;
 }
 
-aside button::before {
+aside button:not(.exec-btn)::before {
     content: '';
     position: absolute;
     left: 10px;
@@ -86,7 +86,8 @@ aside button:active {
     transition: background-color 0.15s;
 }
 
-.exec-btn::before {
+
+.exec-run::before {
     content: '\25B6\0020';
 }
 

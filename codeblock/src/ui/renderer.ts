@@ -644,11 +644,11 @@ export function createBlockElement(block:Block): HTMLElement {
             const span2 = document.createElement('span');
             const spanExpr = document.createElement('span');
 
-            spanName.textContent = `${block.name}[`;
+            spanName.textContent = `${block.name}`;
             spanName.className = 'editable';
-            spanIdx.textContent = parseExpression(block.index);
+            spanIdx.textContent = `[${parseExpression(block.index)}]`;
             spanIdx.className = 'editable';
-            span2.textContent = '] = ';
+            span2.textContent = ' = ';
             spanExpr.textContent = parseExpression(block.expression);
             spanExpr.className = 'editable';
 
